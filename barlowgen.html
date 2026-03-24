@@ -494,7 +494,7 @@ let W, H, CX, CY;
 function resize() {
   W = cv.width = window.innerWidth;
   H = cv.height = window.innerHeight;
-  CX = W / 2; CY = H / 2;
+  CX = (W - 252) / 2; CY = H / 2;
 }
 window.addEventListener('resize', resize);
 resize();
