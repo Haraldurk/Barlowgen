@@ -591,7 +591,7 @@ function weightedPick(notes, normRank, tonality) {
 
 function firePulse(idx, t, S, voiceIdx) {
   S = S || state;
-  voiceIdx = voiceIdx || 0;
+  voiceIdx = voiceIdx !== undefined ? voiceIdx : 0;
   const Q = S.indis.length; if (!Q) return;
   const rank = S.indis[idx];
   const nr = Q > 1 ? rank / (Q - 1) : 1;
@@ -1016,7 +1016,7 @@ function frame(ts) {
     while (i < vQueue.length) {
       const ev = vQueue[i];
       if (ev.t <= now + 0.03) {
-        const vi = ev.vi || 0;
+        const vi = ev.vi !== undefined ? ev.vi : (ev.vIdx || 0);
         const evS = vi === 0 ? state : (voiceExts[vi-1] ? voiceExts[vi-1].state : state);
         const Q = evS.indis.length || state.indis.length;
         const angle = -Math.PI / 2 + (ev.idx / Q) * Math.PI * 2;
