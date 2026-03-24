@@ -7,125 +7,145 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
 
+:root {
+  --bg-0: #05050f;
+  --bg-1: rgba(4,4,16,0.88);
+  --bg-2: rgba(14,14,28,0.95);
+  --accent: #e8c840;
+  --mono: 'IBM Plex Mono', monospace;
+  --panel-w: 280px;
+  --status-h: 34px;
+  --state-h: 30px;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; background: #05050f; overflow: hidden; }
-canvas { display: block; position: fixed; top: 0; left: 0; }
+html, body { width: 100%; height: 100%; background: var(--bg-0); overflow: hidden; }
+canvas { display: block; position: fixed; top: 0; left: 0; z-index: 0; }
+
+#status-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--status-h);
+  background: var(--bg-2);
+  border-bottom: 0.5px solid rgba(80,110,200,0.15);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 14px; z-index: 20;
+  font-family: var(--mono); font-size: 10px; color: #404080;
+  letter-spacing: 0.06em;
+}
+#play-btn {
+  padding: 3px 12px;
+  background: rgba(50,70,180,0.1);
+  border: 0.5px solid rgba(50,70,180,0.3);
+  border-radius: 5px; color: #6070c0;
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s;
+}
+#play-btn:hover { background: rgba(50,70,180,0.2); color: #8090e0; }
+#play-btn.on { background: rgba(232,200,64,0.08); border-color: rgba(232,200,64,0.35); color: var(--accent); }
+#sb-title { color: var(--accent); font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; }
+#sb-info { flex: 1; display: flex; gap: 16px; font-size: 9px; color: #2a2a50; }
 
 #panel {
-  position: fixed; top: 20px; right: 20px; width: 252px;
-  background: rgba(4, 4, 16, 0.82);
-  border: 0.5px solid rgba(80, 110, 200, 0.18);
-  border-radius: 14px; padding: 18px 18px 16px;
+  position: fixed;
+  top: var(--status-h);
+  right: 0;
+  width: var(--panel-w);
+  bottom: var(--state-h);
+  background: var(--bg-1);
+  border-left: 0.5px solid rgba(80,110,200,0.15);
   backdrop-filter: blur(24px);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--mono);
   font-size: 11px; color: #5060a0;
   z-index: 10;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(60,70,140,0.3) transparent;
+  padding: 14px 18px 18px;
 }
 
-#panel header {
-  margin-bottom: 16px;
-  border-bottom: 0.5px solid rgba(80,110,200,0.1);
-  padding-bottom: 12px;
+#state-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--state-h);
+  background: var(--bg-2);
+  border-top: 0.5px solid rgba(80,110,200,0.12);
+  display: flex; align-items: center; gap: 5px;
+  padding: 0 12px; z-index: 20;
+  font-family: var(--mono); font-size: 9px; color: #303060;
 }
-#panel header h1 {
-  font-size: 13px; font-weight: 500; letter-spacing: 0.15em;
-  color: #7080c0; text-transform: uppercase; margin-bottom: 2px;
+#p-add {
+  padding: 2px 8px; font-size: 11px; font-family: var(--mono);
+  background: rgba(40,40,80,0.5); border: 0.5px solid rgba(60,60,100,0.4);
+  border-radius: 3px; color: #404070; cursor: pointer;
 }
-#panel header p {
-  font-size: 9px; letter-spacing: 0.06em; color: #303060;
-  text-transform: uppercase;
-}
+#p-add:hover { color: var(--accent); }
 
 .row { margin-bottom: 10px; }
-.lbl {
-  display: flex; justify-content: space-between;
-  font-size: 10px; letter-spacing: 0.04em;
-  color: #404080; margin-bottom: 4px;
-}
+.row:last-child { margin-bottom: 0; }
+.lbl { display: flex; justify-content: space-between; font-size: 9px; letter-spacing: 0.04em; color: #404080; margin-bottom: 3px; }
 .lbl span { color: #7080b0; }
+.sec-label { font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: #282850; margin: 14px 0 8px; border-top: 0.5px solid rgba(80,100,200,0.08); padding-top: 10px; }
+.sec-label:first-child { margin-top: 0; border-top: none; padding-top: 0; }
 
 input[type=range] {
   -webkit-appearance: none; width: 100%; height: 1px;
-  background: rgba(80,100,200,0.25); cursor: pointer; outline: none;
+  background: rgba(80,100,200,0.22); cursor: pointer; outline: none;
 }
 input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 10px; height: 10px;
-  border-radius: 50%; background: #5566cc; cursor: pointer;
+  -webkit-appearance: none; width: 9px; height: 9px;
+  border-radius: 50%; background: #e8c840; cursor: pointer;
 }
 input[type=range]::-moz-range-thumb {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: #5566cc; border: none; cursor: pointer;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #e8c840; border: none; cursor: pointer;
 }
-
 input[type=text], select {
   width: 100%; padding: 5px 8px;
   background: rgba(255,255,255,0.03);
   border: 0.5px solid rgba(80,100,200,0.18);
-  border-radius: 6px; color: #8090c0;
-  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+  border-radius: 5px; color: #8090c0;
+  font-size: 10px; font-family: var(--mono);
   outline: none; cursor: pointer;
 }
 input[type=text]:focus { border-color: rgba(80,100,200,0.4); }
 select option { background: #0c0c20; }
-
-#btn {
-  width: 100%; padding: 9px; margin-top: 10px;
-  background: rgba(50,70,180,0.1);
-  border: 0.5px solid rgba(50,70,180,0.3);
-  border-radius: 8px; color: #6070c0;
-  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  cursor: pointer; transition: all 0.2s;
-}
-#btn:hover { background: rgba(50,70,180,0.2); color: #8090e0; }
-#btn.on { background: rgba(180,60,60,0.1); border-color: rgba(180,60,60,0.3); color: #b07080; }
-
-#status {
-  margin-top: 12px; font-size: 9px; letter-spacing: 0.05em;
-  color: #2a2a50; line-height: 1.8; border-top: 0.5px solid rgba(80,100,200,0.08);
-  padding-top: 10px;
-}
-
-.divider { height: 0.5px; background: rgba(80,100,200,0.08); margin: 12px 0; }
+.divider { height: 0.5px; background: rgba(80,100,200,0.08); margin: 10px 0; }
+.hidden { display: none !important; }
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 
-<div id="panel">
-  <header>
-    <h1>barlowgen</h1>
-    <p>after clarence barlow · autobusk 1986</p>
-  </header>
+<div id="status-bar">
+  <button id="play-btn">&#9654; start</button>
+  <span id="sb-title">barlowgen</span>
+  <div id="sb-info">
+    <span id="sb-pulses">6 pulses</span>
+    <span id="sb-strat">[3&#215;2]</span>
+    <span id="sb-bpm">72 bpm</span>
+  </div>
+</div>
 
+<div id="panel">
+  <div class="sec-label">rhythm · v1</div>
   <div class="row">
     <div class="lbl"><span>stratification</span></div>
-    <input type="text" id="strat" value="3 2" spellcheck="false"
-      placeholder="e.g. 2 3  or  3 2 2">
+    <input type="text" id="strat" value="3 2" spellcheck="false">
   </div>
-
   <div class="row">
     <div class="lbl"><span>metricity</span><span id="mv">0.65</span></div>
     <input type="range" id="metricity" min="0" max="1" step="0.01" value="0.65">
   </div>
-
   <div class="row">
     <div class="lbl"><span>density</span><span id="dv">1.00</span></div>
     <input type="range" id="density" min="0" max="1" step="0.01" value="1">
   </div>
-
-  <div class="row">
-    <div class="lbl"><span>tonality</span><span id="tv">0.70</span></div>
-    <input type="range" id="tonality" min="0" max="1" step="0.01" value="0.70">
-  </div>
-
   <div class="row">
     <div class="lbl"><span>tempo</span><span id="bv">72 bpm</span></div>
     <input type="range" id="bpm" min="30" max="220" step="1" value="72">
   </div>
 
-  <div class="divider"></div>
-
+  <div class="sec-label">harmony · v1</div>
   <div class="row">
     <div class="lbl"><span>scale</span></div>
     <select id="scale">
@@ -136,7 +156,6 @@ select option { background: #0c0c20; }
       <option value="chromatic">chromatic (just)</option>
     </select>
   </div>
-
   <div class="row">
     <div class="lbl"><span>tonic</span></div>
     <select id="tonic">
@@ -153,21 +172,24 @@ select option { background: #0c0c20; }
     <div class="lbl"><span>ambitus</span><span id="av">2 oct</span></div>
     <input type="range" id="ambitus" min="1" max="4" step="1" value="2">
   </div>
-
   <div class="row">
-    <div class="lbl"><span>timbre</span></div>
+    <div class="lbl"><span>tonality</span><span id="tv">0.70</span></div>
+    <input type="range" id="tonality" min="0" max="1" step="0.01" value="0.70">
+  </div>
+
+  <div class="sec-label">timbre · v1</div>
+  <div class="row">
+    <div class="lbl"><span>wave</span></div>
     <select id="wave">
       <option value="sine">sine</option>
       <option value="triangle" selected>triangle</option>
       <option value="sawtooth">sawtooth</option>
     </select>
   </div>
-
   <div class="row">
     <div class="lbl"><span>volume</span><span id="vv">0.50</span></div>
     <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
   </div>
-
   <div class="row">
     <div class="lbl"><span>gate</span><span id="gv">0.80</span></div>
     <input type="range" id="gate" min="0.05" max="1" step="0.01" value="0.8">
@@ -180,14 +202,11 @@ select option { background: #0c0c20; }
     <div class="lbl"><span>bass vel</span><span id="bsv">0.50</span></div>
     <input type="range" id="bassVel" min="0" max="1" step="0.01" value="0.5">
   </div>
+</div>
 
-  <button id="btn">▶  start</button>
-
-  <div id="status">
-    <div id="s-pulses">6 pulses  ·  [3 × 2]</div>
-    <div id="s-harm">harmonicity  →  color</div>
-    <div id="s-indis">indispensability  →  size</div>
-  </div>
+<div id="state-bar">
+  <button id="p-add">+</button>
+  <div id="pslots-wrap" style="display:flex;gap:3px"></div>
 </div>
 
 <script>
@@ -917,8 +936,12 @@ function parseStrat(s) {
 function updateStatus() {
   const s = P.strat;
   const Q = s.reduce((a, b) => a * b, 1);
-  document.getElementById('s-pulses').textContent =
-    `${Q} pulses  ·  [${s.join(' × ')}]`;
+  const sbp = document.getElementById('sb-pulses');
+  const sbs = document.getElementById('sb-strat');
+  const sbb = document.getElementById('sb-bpm');
+  if (sbp) sbp.textContent = Q + ' pulses';
+  if (sbs) sbs.textContent = '[' + s.join('×') + ']';
+  if (sbb) sbb.textContent = Math.round(P.bpm) + ' bpm';
 }
 
 document.getElementById('strat').addEventListener('change', e => {
@@ -990,14 +1013,14 @@ document.getElementById('bassVel').addEventListener('input', e => {
   document.getElementById('bsv').textContent = P.bassVel.toFixed(2);
 });
 
-const btn = document.getElementById('btn');
+const btn = document.getElementById('play-btn');
 btn.addEventListener('click', () => {
   if (playing) {
     stopEngine();
-    btn.textContent = '▶  start'; btn.classList.remove('on');
+    btn.innerHTML = '&#9654; start'; btn.classList.remove('on');
   } else {
     startEngine();
-    btn.textContent = '■  stop'; btn.classList.add('on');
+    btn.innerHTML = '&#9632; stop'; btn.classList.add('on');
   }
 });
 
