@@ -170,6 +170,10 @@ select option { background: #0c0c20; }
       <option value="pentatonic">pentatonic</option>
       <option value="pythagorean">pythagorean</option>
       <option value="chromatic">chromatic (just)</option>
+      <option value="melodicMinor">melodic minor ↑↓</option>
+      <option value="bhimpalasi">bhimpalasi ↑↓</option>
+      <option value="yaman">yaman</option>
+      <option value="bhairavi">bhairavi</option>
     </select>
   </div>
   <div class="row">
@@ -414,25 +418,49 @@ const SCALES = {
   minor:       [[1,1],[9,8],[6,5],[4,3],[3,2],[8,5],[9,5]],
   pentatonic:  [[1,1],[9,8],[5,4],[3,2],[5,3]],
   pythagorean: [[1,1],[9,8],[81,64],[4,3],[3,2],[27,16],[243,128]],
-  chromatic:   [[1,1],[16,15],[9,8],[6,5],[5,4],[4,3],[45,32],[3,2],[8,5],[5,3],[9,5],[15,8]]
+  chromatic:   [[1,1],[16,15],[9,8],[6,5],[5,4],[4,3],[45,32],[3,2],[8,5],[5,3],[9,5],[15,8]],
+  melodicMinor: {
+    aroha:   [[1,1],[9,8],[6,5],[4,3],[3,2],[5,3],[15,8]],
+    avaroha: [[1,1],[9,8],[6,5],[4,3],[3,2],[8,5],[9,5]]
+  },
+  bhimpalasi: {
+    aroha:   [[1,1],[6,5],[4,3],[3,2],[9,5]],
+    avaroha: [[1,1],[9,8],[6,5],[4,3],[3,2],[9,5],[7,4]]
+  },
+  yaman: {
+    aroha:   [[1,1],[9,8],[5,4],[45,32],[3,2],[5,3],[15,8]],
+    avaroha: [[1,1],[9,8],[5,4],[45,32],[3,2],[5,3],[15,8]]
+  },
+  bhairavi: {
+    aroha:   [[1,1],[16,15],[6,5],[4,3],[3,2],[8,5],[9,5]],
+    avaroha: [[1,1],[16,15],[6,5],[4,3],[3,2],[8,5],[9,5]]
+  }
 };
 
 function buildNotes(scaleName, tonic, octave, ambitus) {
   tonic = tonic || 'A'; octave = +octave || 3; ambitus = +ambitus || 2;
   const root = (TONICMAP[tonic] || 440) * Math.pow(2, octave - 4);
-  const ratios = SCALES[scaleName] || SCALES.major;
-  const notes = [];
-  const top = root * Math.pow(2, ambitus) * 1.005;
-  for (let oct = 0; oct <= ambitus; oct++) {
-    for (const [p, q] of ratios) {
-      const freq = root * Math.pow(2, oct) * p / q;
-      if (freq <= top) notes.push({ freq, h: absHarm(p, q) });
+  const def = SCALES[scaleName] || SCALES.major;
+
+  function makeArr(ratios) {
+    const notes = [], top = root * Math.pow(2, ambitus) * 1.005;
+    for (let oct = 0; oct <= ambitus; oct++) {
+      for (const [p, q] of ratios) {
+        const freq = root * Math.pow(2, oct) * p / q;
+        if (freq <= top) notes.push({ freq, h: absHarm(p, q) });
+      }
     }
+    notes.sort((a, b) => a.freq - b.freq);
+    const maxH = Math.max(...notes.map(n => n.h), 0.001);
+    notes.forEach(n => n.nh = n.h / maxH);
+    return notes;
   }
-  notes.sort((a, b) => a.freq - b.freq);
-  const maxH = Math.max(...notes.map(n => n.h), 0.001);
-  notes.forEach(n => n.nh = n.h / maxH);
-  return notes;
+
+  if (def.aroha) {
+    return { aroha: makeArr(def.aroha), avaroha: makeArr(def.avaroha), directional: true };
+  }
+  const arr = makeArr(def);
+  return { aroha: arr, avaroha: arr, directional: false };
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -526,8 +554,17 @@ function firePulse(idx, t) {
   const prob = S.metricity < 0.001 ? dens : Math.max(0, dens * (1 - S.metricity * (1 - nr)));
 
   if (Math.random() < prob) {
-    const note = weightedPick(S.notes, nr, S.tonality);
+    const noteArr = S.notes.directional
+      ? (S.direction >= 0 ? S.notes.aroha : S.notes.avaroha)
+      : (S.notes.aroha || S.notes);
+    const note = weightedPick(noteArr, nr, S.tonality);
     if (note) {
+      if (S.lastFreq) {
+        if (note.freq > S.lastFreq) S.direction = 1;
+        else if (note.freq < S.lastFreq) S.direction = -1;
+      }
+      S.lastFreq = note.freq;
+
       const amp = 0.09 + 0.20 * nr;
       const gate = S.gate !== undefined ? S.gate : 0.8;
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
@@ -600,7 +637,8 @@ const P = {
   };
   const state = {
   indis: [], notes: [], pulseDur: 0.4,
-  metricity: 0.65, tonality: 0.70, density: 1, gate: 0.8, wave: 'triangle'
+  metricity: 0.65, tonality: 0.70, density: 1, gate: 0.8, wave: 'triangle',
+  direction: 1, lastFreq: 440,
   };
 
 function makeVoiceParams(strat, chan) {
@@ -782,8 +820,8 @@ window.addEventListener('resize', resize);
 resize();
 
 // Color: harmonicity nh=0 → amber/gold, nh=1 → cool blue
-function hcolor(nh, alpha) {
-  const hue = Math.round(38 + nh * 188); // 38=amber … 226=blue
+function hcolor(nh, alpha, hoff, hdir) {
+  const hue = Math.round(38 + nh * 188 + (hoff || 0) + (hdir || 0)); // 38=amber … 226=blue
   const sat = 68 + Math.round(nh * 16);
   const lit = 52 + Math.round(nh * 18);
   return `hsla(${hue},${sat}%,${lit}%,${(alpha).toFixed(3)})`;
@@ -796,8 +834,8 @@ const VOICE_HUE_OFFSETS = [0, 100, -80];     // V1 amber-blue, V2 green-magenta,
 // Particles
 const particles = [];
 class Particle {
-  constructor(angle, nh, nr) {
-    this.nh = nh; this.nr = nr;
+  constructor(angle, nh, nr, hdir) {
+    this.nh = nh; this.nr = nr; this.hdir = hdir || 0;
     this.life = 0; this.maxLife = 2.0 + nr * 3.2;
     const R = ringR();
     this.x = CX + Math.cos(angle) * R;
@@ -831,7 +869,7 @@ class Particle {
     // Glow halo
     if (sz > 0.5) {
       const gr = cx.createRadialGradient(this.x, this.y, 0, this.x, this.y, sz * 4);
-      gr.addColorStop(0, hcolor(this.nh, a * 0.45));
+      gr.addColorStop(0, hcolor(this.nh, a * 0.45, 0, this.hdir));
       gr.addColorStop(1, 'transparent');
       cx.beginPath();
       cx.arc(this.x, this.y, sz * 4, 0, Math.PI * 2);
@@ -844,7 +882,7 @@ class Particle {
       cx.moveTo(this.trail[0].x, this.trail[0].y);
       for (let i = 1; i < this.trail.length; i++)
         cx.lineTo(this.trail[i].x, this.trail[i].y);
-      cx.strokeStyle = hcolor(this.nh, a * 0.22);
+      cx.strokeStyle = hcolor(this.nh, a * 0.22, 0, this.hdir);
       cx.lineWidth = sz * 0.55;
       cx.lineCap = 'round';
       cx.stroke();
@@ -853,7 +891,7 @@ class Particle {
     // Core
     cx.beginPath();
     cx.arc(this.x, this.y, sz, 0, Math.PI * 2);
-    cx.fillStyle = hcolor(this.nh, a * 0.9);
+    cx.fillStyle = hcolor(this.nh, a * 0.9, 0, this.hdir);
     cx.fill();
   }
 }
@@ -899,7 +937,8 @@ function frame(ts) {
         const R = ringR();
         const px = CX + Math.cos(angle) * R;
         const py = CY + Math.sin(angle) * R;
-        if (particles.length < 280) particles.push(new Particle(angle, ev.nh, ev.nr));
+        const hdir = state.direction >= 0 ? 15 : -15;
+        if (particles.length < 280) particles.push(new Particle(angle, ev.nh, ev.nr, hdir));
         ripples.push(new Ripple(px, py, ev.nr, ev.nh));
         if (ev.nr > 0.72) cPulse = Math.max(cPulse, ev.nr);
         vQueue.splice(i, 1);
@@ -978,7 +1017,7 @@ function drawRing(S, scale, hoff) {
     // Glow on high-rank pulses
     if (nr > 0.6) {
       const gr = cx.createRadialGradient(x, y, 0, x, y, size * 3);
-      gr.addColorStop(0, `rgba(${60+Math.round(nr*120)},${80+Math.round(nr*80)},255,${a * 0.4})`);
+      gr.addColorStop(0, hcolor(nr, a * 0.4, hoff));
       gr.addColorStop(1, 'transparent');
       cx.beginPath(); cx.arc(x, y, size * 3, 0, Math.PI * 2);
       cx.fillStyle = gr; cx.fill();
@@ -986,7 +1025,7 @@ function drawRing(S, scale, hoff) {
 
     cx.beginPath();
     cx.arc(x, y, size, 0, Math.PI * 2);
-    cx.fillStyle = `rgba(${55+Math.round(nr*120)},${75+Math.round(nr*80)},255,${a})`;
+    cx.fillStyle = hcolor(nr, a, hoff);
     cx.fill();
 
     // Downbeat marker
