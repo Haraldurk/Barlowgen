@@ -236,6 +236,33 @@ select option { background: #0c0c20; }
     <input type="range" id="v3-tonality" min="0" max="1" step="0.01" value="0.5">
   </div>
 
+  <div class="sec-label">midi out</div>
+  <div class="row">
+    <div class="lbl"><span>device</span></div>
+    <select id="midi-dev"><option value="">-- none --</option></select>
+  </div>
+  <div class="row">
+    <div class="lbl"><span>channel</span></div>
+    <select id="midi-chan">
+      <option value="1" selected>1</option><option value="2">2</option>
+      <option value="3">3</option><option value="4">4</option>
+      <option value="5">5</option><option value="6">6</option>
+      <option value="7">7</option><option value="8">8</option>
+      <option value="9">9</option><option value="10">10</option>
+      <option value="11">11</option><option value="12">12</option>
+      <option value="13">13</option><option value="14">14</option>
+      <option value="15">15</option><option value="16">16</option>
+    </select>
+  </div>
+  <div class="row">
+    <div class="lbl"><span>vel min</span><span id="vlmin">40</span></div>
+    <input type="range" id="vel-min" min="1" max="100" step="1" value="40">
+  </div>
+  <div class="row">
+    <div class="lbl"><span>vel max</span><span id="vlmax">110</span></div>
+    <input type="range" id="vel-max" min="40" max="127" step="1" value="110">
+  </div>
+
   <div class="sec-label">timbre · v1</div>
   <div class="row">
     <div class="lbl"><span>wave</span></div>
@@ -468,7 +495,7 @@ function buildNotes(scaleName, tonic, octave, ambitus) {
 // ═══════════════════════════════════════════════════════════
 
 const midi={out:null,chan:1,perfOffset:0};
-let AC=null,master=null,reverbIn=null;
+let AC=null,master=null,reverbIn=null,midiOut=null,midiAccess=null;
 
 function initAudio() {
   AC = new (window.AudioContext || window.webkitAudioContext)();
@@ -489,9 +516,17 @@ function initAudio() {
   wet.connect(master);
   master.connect(AC.destination);
   reverbIn = d1;
+
+  if (navigator.requestMIDIAccess) {
+    navigator.requestMIDIAccess().then(acc => {
+      midiAccess = acc;
+      populateMidiDevices();
+      acc.onstatechange = populateMidiDevices;
+    }).catch(() => {});
+  }
 }
 
-function playNote(freq, dur, amp, t, wave, bass) {
+function playNote(freq, dur, amp, t, wave, bass, chan) {
   const osc = AC.createOscillator();
   const env = AC.createGain();
   const flt = AC.createBiquadFilter();
@@ -514,6 +549,17 @@ function playNote(freq, dur, amp, t, wave, bass) {
   if (!bass) env.connect(reverbIn);
 
   osc.start(t); osc.stop(t + dur + 0.05);
+
+  if (!bass && chan) {
+    const mn = freqToMidi(freq);
+    if (mn >= 0 && mn <= 127) {
+      const vel = Math.max(1, Math.min(127,
+        Math.round(P.velocityMin + (amp - 0.06) / 0.22 * (P.velocityMax - P.velocityMin))
+      ));
+      midiNoteOn(mn, vel, chan, t);
+      midiNoteOff(mn, chan, t + dur);
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -570,7 +616,7 @@ function firePulse(idx, t) {
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
       const dur = S.pulseDur * gate;
-      playNote(note.freq, dur, amp, tFire, S.wave, false);
+      playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan);
       vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false });
     }
   }
@@ -617,6 +663,11 @@ function startEngine() {
 }
 function stopEngine() {
   clearInterval(schedTick); schedTick = null; playing = false;
+  if (midiOut) {
+    for (let c = 1; c <= 16; c++) {
+      midiOut.send([0xB0 | (c-1), 123, 0]);
+    }
+  }
   if (midi.out) {
     midi.out.send([0xB0 | midi.chan, 123, 0]);
     for (const ve of voiceExts)
@@ -633,6 +684,9 @@ const P = {
   tonic: 'A', octave: 3, ambitus: 2, gate: 0.8,
   jitter: 0,
   bassVel: 0.5,
+  midiChan: 1,
+  velocityMin: 40,
+  velocityMax: 110,
   bpm: 72, scale: 'major', wave: 'triangle', volume: 0.5
   };
   const state = {
@@ -784,6 +838,35 @@ function renderPresets() {
     });
     wrap.appendChild(slot);
   });
+}
+
+function populateMidiDevices() {
+  if (!midiAccess) return;
+  const sel = document.getElementById('midi-dev');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">-- none --</option>';
+  for (const [id, out] of midiAccess.outputs) {
+    const o = document.createElement('option');
+    o.value = id; o.textContent = out.name;
+    sel.appendChild(o);
+  }
+  sel.value = prev;
+  midiOut = midiAccess.outputs.get(sel.value) || null;
+}
+
+function midiNoteOn(note, vel, chan, t) {
+  if (!midiOut) return;
+  midiOut.send([0x90 | ((chan - 1) & 0xF), note & 0x7F, vel & 0x7F], t * 1000);
+}
+
+function midiNoteOff(note, chan, t) {
+  if (!midiOut) return;
+  midiOut.send([0x80 | ((chan - 1) & 0xF), note & 0x7F, 0], t * 1000);
+}
+
+function freqToMidi(freq) {
+  return Math.round(69 + 12 * Math.log2(freq / 440));
 }
 
 function rebuildState() {
@@ -1265,6 +1348,21 @@ document.getElementById('jitter').addEventListener('input', e => {
 document.getElementById('bassVel').addEventListener('input', e => {
   P.bassVel = +e.target.value;
   document.getElementById('bsv').textContent = P.bassVel.toFixed(2);
+});
+
+document.getElementById('midi-dev').addEventListener('change', e => {
+  midiOut = midiAccess ? midiAccess.outputs.get(e.target.value) || null : null;
+});
+document.getElementById('midi-chan').addEventListener('change', e => {
+  P.midiChan = +e.target.value;
+});
+document.getElementById('vel-min').addEventListener('input', e => {
+  P.velocityMin = +e.target.value;
+  document.getElementById('vlmin').textContent = e.target.value;
+});
+document.getElementById('vel-max').addEventListener('input', e => {
+  P.velocityMax = +e.target.value;
+  document.getElementById('vlmax').textContent = e.target.value;
 });
 
 document.getElementById('p-add').addEventListener('click', () => {
