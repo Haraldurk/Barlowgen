@@ -111,6 +111,22 @@ input[type=text]:focus { border-color: rgba(80,100,200,0.4); }
 select option { background: #0c0c20; }
 .divider { height: 0.5px; background: rgba(80,100,200,0.08); margin: 10px 0; }
 .hidden { display: none !important; }
+
+.pslot {
+  width: 22px; height: 20px;
+  background: rgba(255,255,255,0.02);
+  border: 0.5px solid rgba(80,100,160,0.2);
+  border-radius: 3px; color: #303060;
+  font-size: 9px; font-family: var(--mono);
+  cursor: pointer; transition: all 0.12s;
+  display: flex; align-items: center; justify-content: center;
+}
+.pslot:hover { color: #6070b0; border-color: rgba(80,100,160,0.5); }
+.pslot.saved { border-color: rgba(80,100,200,0.45); color: #5060a0; }
+.pslot.active { border-color: rgba(232,200,64,0.6); color: var(--accent); background: rgba(232,200,64,0.06); }
+.pslot.morph-b { border-color: rgba(200,60,200,0.6); color: #e040e0; }
+#morph-row { display: flex; align-items: center; gap: 5px; font-size: 9px; color: #2a2a50; }
+#morph-row input[type=range] { width: 60px; }
 </style>
 </head>
 <body>
@@ -245,7 +261,11 @@ select option { background: #0c0c20; }
 
 <div id="state-bar">
   <button id="p-add">+</button>
-  <div id="pslots-wrap" style="display:flex;gap:3px"></div>
+  <div id="pslots-wrap" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+  <div id="morph-row" class="hidden">
+    A<input type="range" id="morph-fader" min="0" max="1" step="0.001" value="0">B
+    <button id="morph-clear" style="padding:1px 6px;font-size:9px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">x</button>
+  </div>
 </div>
 
 <script>
@@ -614,6 +634,118 @@ function rebuildVoiceState(ve) {
   vs.density = vp.density;
   vs.wave = vp.wave;
   vs.gate = vp.gate;
+}
+
+// ── PRESETS ──────────────────────────────────────────────
+let presets = [];
+let activeIdx = -1;
+let morphBIdx = -1;
+
+try {
+  presets = JSON.parse(localStorage.getItem('barlowgen_presets') || '[]');
+} catch(e) { presets = []; }
+if (!presets.length) {
+  for (let i = 0; i < 8; i++) presets.push({ name: 'P'+(i+1), data: null });
+  savePresets();
+}
+
+function savePresets() {
+  localStorage.setItem('barlowgen_presets', JSON.stringify(presets));
+}
+
+function captureState() {
+  return JSON.parse(JSON.stringify(P));
+}
+
+function applyState(snap) {
+  if (!snap) return;
+  Object.assign(P, snap);
+  syncUI();
+  rebuildState();
+}
+
+function syncUI() {
+  document.getElementById('strat').value = P.strat.join(' ');
+  document.getElementById('metricity').value = P.metricity;
+  document.getElementById('mv').textContent = P.metricity.toFixed(2);
+  document.getElementById('density').value = P.density;
+  document.getElementById('dv').textContent = P.density.toFixed(2);
+  document.getElementById('bpm').value = P.bpm;
+  document.getElementById('bv').textContent = Math.round(P.bpm) + ' bpm';
+  document.getElementById('scale').value = P.scale;
+  document.getElementById('tonic').value = P.tonic;
+  document.getElementById('octave').value = P.octave;
+  document.getElementById('ov').textContent = P.octave;
+  document.getElementById('ambitus').value = P.ambitus;
+  document.getElementById('av').textContent = P.ambitus + ' oct';
+  document.getElementById('tonality').value = P.tonality;
+  document.getElementById('tv').textContent = P.tonality.toFixed(2);
+  document.getElementById('wave').value = P.wave;
+  document.getElementById('volume').value = P.volume;
+  document.getElementById('vv').textContent = P.volume.toFixed(2);
+  document.getElementById('gate').value = P.gate;
+  document.getElementById('gv').textContent = P.gate.toFixed(2);
+  document.getElementById('jitter').value = P.jitter;
+  document.getElementById('jv').textContent = P.jitter.toFixed(2);
+  document.getElementById('bassVel').value = P.bassVel;
+  document.getElementById('bsv').textContent = P.bassVel.toFixed(2);
+}
+
+function savePreset(idx) {
+  while (presets.length <= idx) presets.push({ name: 'P'+(presets.length+1), data: null });
+  presets[idx].data = captureState();
+  savePresets();
+  activeIdx = idx;
+  renderPresets();
+}
+
+function loadPreset(idx) {
+  if (!presets[idx] || !presets[idx].data) return;
+  applyState(presets[idx].data);
+  activeIdx = idx;
+  renderPresets();
+}
+
+function applyMorph(t) {
+  if (activeIdx < 0 || morphBIdx < 0) return;
+  const a = presets[activeIdx] && presets[activeIdx].data;
+  const b = presets[morphBIdx] && presets[morphBIdx].data;
+  if (!a || !b) return;
+  const keys = ['metricity','tonality','density','bpm','volume','gate','jitter','bassVel'];
+  keys.forEach(k => { if (a[k] !== undefined && b[k] !== undefined) P[k] = a[k] + (b[k] - a[k]) * t; });
+  if (t > 0.5) ['scale','wave','tonic','octave','ambitus'].forEach(k => { if (b[k] !== undefined) P[k] = b[k]; });
+  syncUI();
+  rebuildState();
+}
+
+function renderPresets() {
+  const wrap = document.getElementById('pslots-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  presets.forEach((p, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'pslot' + (p.data ? ' saved' : '') + (i === activeIdx ? ' active' : '') + (i === morphBIdx ? ' morph-b' : '');
+    slot.textContent = i + 1;
+    slot.title = p.name || ('P'+(i+1));
+    slot.addEventListener('click', e => {
+      if (e.shiftKey) {
+        morphBIdx = i;
+        renderPresets();
+        document.getElementById('morph-row').classList.remove('hidden');
+      } else {
+        loadPreset(i);
+      }
+    });
+    slot.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      savePreset(i);
+    });
+    slot.addEventListener('dblclick', () => {
+      const n = prompt('Preset name:', p.name);
+      if (n) { p.name = n; savePresets(); renderPresets(); }
+    });
+    wrap.appendChild(slot);
+  });
 }
 
 function rebuildState() {
@@ -1096,6 +1228,32 @@ document.getElementById('bassVel').addEventListener('input', e => {
   document.getElementById('bsv').textContent = P.bassVel.toFixed(2);
 });
 
+document.getElementById('p-add').addEventListener('click', () => {
+  presets.push({ name: 'P'+(presets.length+1), data: null });
+  savePresets();
+  renderPresets();
+});
+document.getElementById('morph-fader').addEventListener('input', e => {
+  applyMorph(+e.target.value);
+});
+document.getElementById('morph-clear').addEventListener('click', () => {
+  morphBIdx = -1;
+  document.getElementById('morph-row').classList.add('hidden');
+  document.getElementById('morph-fader').value = 0;
+  renderPresets();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if ((e.metaKey || e.ctrlKey) && e.key >= '1' && e.key <= '9') {
+    e.preventDefault();
+    const idx = +e.key - 1;
+    if (e.shiftKey) savePreset(idx);
+    else loadPreset(idx);
+  }
+});
+
 [['v2', 0], ['v3', 1]].forEach(([pfx, vi]) => {
   const ve = voiceExts[vi];
   document.getElementById(pfx+'-en').addEventListener('change', e => {
@@ -1129,6 +1287,7 @@ btn.addEventListener('click', () => {
   }
 });
 
+renderPresets();
 requestAnimationFrame(frame);
 </script>
 </body>
