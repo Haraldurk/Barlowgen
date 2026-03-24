@@ -29,7 +29,7 @@ canvas { display: block; position: fixed; top: 0; left: 0; }
 }
 #panel header h1 {
   font-size: 13px; font-weight: 500; letter-spacing: 0.15em;
-  color: #e8c840; text-transform: uppercase; margin-bottom: 2px;
+  color: #7080c0; text-transform: uppercase; margin-bottom: 2px;
 }
 #panel header p {
   font-size: 9px; letter-spacing: 0.06em; color: #303060;
@@ -185,6 +185,75 @@ function absHarm(p, q) {
   return 1 / (indig(p) + indig(q));
 }
 
+// ═══════════════════════════════════════════════════════════
+// TUNING — Gaussian bell rationalization (Barlow)
+// ═══════════════════════════════════════════════════════════
+
+function oddPart(n) { while (n % 2 === 0) n >>= 1; return n; }
+
+// All reduced ratios P/Q in [1,2] with odd parts ≤ 15 — the 15-odd-limit JI space
+const ODD_LIMIT_15 = (() => {
+  const seen = new Set(), result = [];
+  for (let q = 1; q <= 120; q++) {
+    for (let p = q; p <= 2 * q; p++) {
+      const g = gcd(p, q);
+      const rp = p / g, rq = q / g;
+      if (oddPart(rp) <= 15 && oddPart(rq) <= 15) {
+        const key = rp + '/' + rq;
+        if (!seen.has(key)) { seen.add(key); result.push([rp, rq]); }
+      }
+    }
+  }
+  return result;
+})();
+
+function gaussBellRationalize(targetCents, sigma) {
+  let best = null, bestScore = -1;
+  for (const [p, q] of ODD_LIMIT_15) {
+    const ratioCents = 1200 * Math.log2(p / q);
+    const diff = targetCents - ratioCents;
+    const score = absHarm(p, q) * Math.exp(-(diff * diff) / (2 * sigma * sigma));
+    if (score > bestScore) { bestScore = score; best = { p, q, ratioCents, score }; }
+  }
+  return best;
+}
+
+function parseSclFile(text) {
+  const lines = text.split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 0 && !l.startsWith('!'));
+  const name  = (lines[0] || 'custom').replace(/\s+/g, '_').toLowerCase();
+  const count = parseInt(lines[1], 10);
+  const cents = [0]; // root 1/1 = 0¢ is implicit
+  for (let i = 2; i < 2 + count && i < lines.length; i++) {
+    const val = lines[i].split('!')[0].trim(); // strip inline comments
+    if (val.includes('/')) {
+      const [p, q] = val.split('/').map(Number);
+      if (p && q) { const c = 1200 * Math.log2(p / q); if (c < 1200) cents.push(c); }
+    } else {
+      const c = parseFloat(val);
+      if (!isNaN(c) && c > 0 && c < 1200) cents.push(c);
+    }
+  }
+  return { name, cents };
+}
+
+function applyTuning(name, ratios) {
+  SCALES[name] = ratios;
+  for (const id of ['scale', 'v2-scale', 'v3-scale']) {
+    const sel = document.getElementById(id);
+    if (!sel) continue;
+    if (!sel.querySelector(`option[value="${name}"]`)) {
+      const opt = document.createElement('option');
+      opt.value = name; opt.textContent = name + ' (custom)';
+      sel.appendChild(opt);
+    }
+  }
+  document.getElementById('scale').value = name;
+  P.scale = name;
+  rebuildNotes();
+}
+
 // Barlow indispensability — recursive stratification
 function singleOrder(q) {
   const o = [0];
@@ -255,6 +324,7 @@ let AC = null, master = null, reverbIn = null;
 
 function initAudio() {
   AC = new (window.AudioContext || window.webkitAudioContext)();
+  midi.perfOffset = performance.now() - AC.currentTime * 1000;
   master = AC.createGain();
   master.gain.value = P.volume;
 
@@ -304,6 +374,12 @@ function playNote(freq, dur, amp, t, wave, bass) {
 
 let pTime = 0, pIdx = 0, schedTick = null, playing = false;
 const vQueue = []; // visual events keyed to audio time
+
+// ── New feature state ────────────────────────────────────────
+let lastFireTime = 0, lastFireNH = 0;
+let driftPhase = 0, resonancePhase = 0, resonating = false;
+let probVizVisible = false, randomBurst = 0;
+const phraseLoop = { active: false, len: 8, buf: [], pos: 0 };
 
 function weightedPick(notes, normRank, tonality) {
   if (!notes.length) return null;
@@ -360,14 +436,20 @@ function startEngine() {
   if (!AC) initAudio();
   if (AC.state === 'suspended') AC.resume();
   rebuildState();
-  pTime = AC.currentTime + 0.06;
-  pIdx = 0;
+  for (const ve of voiceExts) { if (ve.params.enabled) rebuildVoiceState(ve); }
+  pTime = AC.currentTime + 0.06; pIdx = 0;
+  for (const ve of voiceExts) { ve.pTime = AC.currentTime + 0.06; ve.pIdx = 0; }
   scheduler();
   schedTick = setInterval(scheduler, 48);
   playing = true;
 }
 function stopEngine() {
   clearInterval(schedTick); schedTick = null; playing = false;
+  if (midi.out) {
+    midi.out.send([0xB0 | midi.chan, 123, 0]);
+    for (const ve of voiceExts)
+      if (ve.params.enabled) midi.out.send([0xB0 | ve.state.midiChan, 123, 0]);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -416,15 +498,16 @@ window.addEventListener('resize', resize);
 resize();
 
 // Color: harmonicity nh=0 → amber/gold, nh=1 → cool blue
-function hcolor(nh, alpha, hoff) {
-  hoff = hoff || 0;
-  const hue = Math.round(38 + nh * 188 + hoff);
+function hcolor(nh, alpha) {
+  const hue = Math.round(38 + nh * 188); // 38=amber … 226=blue
   const sat = 68 + Math.round(nh * 16);
   const lit = 52 + Math.round(nh * 18);
-  return `hsla(${hue},${sat}%,${lit}%,${alpha.toFixed(3)})`;
+  return `hsla(${hue},${sat}%,${lit}%,${(alpha).toFixed(3)})`;
 }
 
 function ringR() { return Math.min(W, H) * 0.30; }
+const VOICE_RING_SCALES = [1.0, 0.73, 0.50]; // radii as fraction of ringR()
+const VOICE_HUE_OFFSETS = [0, 100, -80];     // V1 amber-blue, V2 green-magenta, V3 red-teal
 
 // Particles
 const particles = [];
@@ -601,7 +684,8 @@ function drawRing() {
     const angle = -Math.PI / 2 + (i / Q) * Math.PI * 2;
     const x = CX + Math.cos(angle) * R;
     const y = CY + Math.sin(angle) * R;
-    const size = 1.2 + nr * 4.5;
+    const resFactor = resonating ? (1 + 0.3 * Math.sin(resonancePhase * Math.PI * 2 + nr * Math.PI)) : 1;
+    const size = (1.2 + nr * 4.5) * resFactor;
     const a = 0.08 + nr * 0.48;
 
     // Glow on high-rank pulses
@@ -641,8 +725,9 @@ function drawRing() {
 }
 
 function drawCenter() {
-  const r = 4 + cPulse * 20;
-  const a = 0.12 + cPulse * 0.6;
+  const breathe = resonating ? (0.5 + 0.5 * Math.sin(resonancePhase * Math.PI * 2 - Math.PI * 0.5)) : 0;
+  const r = 4 + cPulse * 20 + breathe * 8 * lastFireNH;
+  const a = 0.12 + cPulse * 0.6 + breathe * 0.08;
 
   const gr = cx.createRadialGradient(CX, CY, 0, CX, CY, r * 5);
   gr.addColorStop(0, `rgba(60,90,220,${a * 0.4})`);
@@ -658,6 +743,113 @@ function drawCenter() {
   cx.beginPath(); cx.arc(CX, CY, 2, 0, Math.PI * 2);
   cx.fillStyle = `rgba(160,190,255,${0.3 + cPulse * 0.6})`;
   cx.fill();
+}
+
+// ── Resonance shimmer ──────────────────────────────────────
+function drawResonanceShimmer() {
+  const R = ringR();
+  const pulse = 0.5 + 0.5 * Math.sin(resonancePhase * Math.PI * 2);
+  const alpha = 0.08 * lastFireNH * pulse;
+  const gr = cx.createRadialGradient(CX, CY, R * 0.3, CX, CY, R * 1.5);
+  gr.addColorStop(0, 'rgba(0,0,0,0)');
+  gr.addColorStop(0.5, `hsla(${38 + lastFireNH * 188},70%,60%,${alpha})`);
+  gr.addColorStop(1, 'rgba(0,0,0,0)');
+  cx.beginPath();
+  cx.arc(CX, CY, R * 1.5, 0, Math.PI * 2);
+  cx.fillStyle = gr;
+  cx.fill();
+}
+
+// ── Live probability display ───────────────────────────────
+function drawProbViz() {
+  const Q = state.indis.length; if (!Q) return;
+  const R = Math.min(W, H) * 0.12;
+  const cx0 = R + 18, cy0 = H - R - 18 - 28;
+
+  // Label
+  cx.font = `8px var(--mono)`;
+  cx.fillStyle = 'rgba(144,144,168,0.6)';
+  cx.fillText('P(fire)', cx0 - 14, cy0 - R - 5);
+
+  // Outer guide circle
+  cx.beginPath();
+  cx.arc(cx0, cy0, R * 0.85, 0, Math.PI * 2);
+  cx.strokeStyle = 'rgba(90,90,120,0.2)';
+  cx.lineWidth = 0.5;
+  cx.stroke();
+
+  const curIdx = playing ? ((pIdx - 1 + Q) % Q) : -1;
+  for (let i = 0; i < Q; i++) {
+    const rank = state.indis[i];
+    const nr = Q > 1 ? rank / (Q - 1) : 1;
+    const metProb = state.metricity < 0.001 ? 1 : Math.max(0, 1 - state.metricity * (1 - nr));
+    const pFire = metProb * state.density;
+    const angle = -Math.PI / 2 + (i / Q) * Math.PI * 2;
+    const barLen = pFire * R * 0.8;
+    const isCurrent = (i === curIdx);
+
+    cx.beginPath();
+    cx.moveTo(cx0, cy0);
+    cx.lineTo(cx0 + Math.cos(angle) * barLen, cy0 + Math.sin(angle) * barLen);
+    cx.strokeStyle = hcolor(nr, isCurrent ? 0.9 : 0.35);
+    cx.lineWidth = isCurrent ? 2.5 : 1;
+    cx.stroke();
+
+    if (isCurrent && barLen > 2) {
+      cx.beginPath();
+      cx.arc(cx0 + Math.cos(angle) * barLen, cy0 + Math.sin(angle) * barLen, 2.5, 0, Math.PI * 2);
+      cx.fillStyle = hcolor(nr, 0.9);
+      cx.fill();
+    }
+  }
+}
+
+// ── Randomize burst ────────────────────────────────────────
+function drawRandomBurst() {
+  const fade = randomBurst;
+  const r = (1 - fade) * Math.min(W, H) * 0.6;
+  const gr = cx.createRadialGradient(CX, CY, 0, CX, CY, r);
+  gr.addColorStop(0, `rgba(232,200,64,${fade * 0.4})`);
+  gr.addColorStop(0.3, `rgba(100,180,240,${fade * 0.15})`);
+  gr.addColorStop(1, 'rgba(0,0,0,0)');
+  cx.beginPath();
+  cx.arc(CX, CY, r, 0, Math.PI * 2);
+  cx.fillStyle = gr;
+  cx.fill();
+}
+
+// ── Constrained randomize ──────────────────────────────────
+function doRandomize() {
+  const STRATS = [[2,2],[3,2],[2,3],[2,2,2],[3,3],[5,2],[2,5],[7],[5,3],[3,2,2],[2,2,3]];
+  const SCALE_KEYS = ['major','minor','pentatonic','pythagorean','dorian_mode',
+    'yaman','bhairavi','kafi','todi','doubleHarmonic','phrygianDom','lydianDom',
+    'hirajoshi','hungarianMinor','octatonic'];
+  const validScales = SCALE_KEYS.filter(k => SCALES[k]);
+  const TONICS = ['A','A#','B','C','C#','D','D#','E','F','F#','G','G#'];
+  const WAVES = ['triangle','triangle','triangle','sine','saw'];
+
+  let metricity = 0.15 + Math.random() * 0.75;
+  let tonality  = 0.20 + Math.random() * 0.75;
+  if (metricity < 0.25 && tonality < 0.25) { metricity += 0.30; tonality += 0.30; }
+
+  const gateMin = 0.05 + Math.random() * 0.25;
+  const gateMax = Math.min(0.98, gateMin + 0.30 + Math.random() * 0.60);
+
+  P.strat      = STRATS[Math.floor(Math.random() * STRATS.length)];
+  P.metricity  = Math.min(0.90, metricity);
+  P.tonality   = Math.min(0.95, tonality);
+  P.density    = 0.35 + Math.random() * 0.65;
+  P.scale      = validScales[Math.floor(Math.random() * validScales.length)];
+  P.tonic      = TONICS[Math.floor(Math.random() * TONICS.length)];
+  P.octave     = 2 + Math.floor(Math.random() * 3);
+  P.wave       = WAVES[Math.floor(Math.random() * WAVES.length)];
+  P.gateMin    = gateMin;
+  P.gateMax    = gateMax;
+  P.swing      = Math.random() * 0.55;
+
+  syncUI(); rebuildState();
+  if (playing) { stopEngine(); startEngine(); }
+  randomBurst = 1;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -698,6 +890,7 @@ document.getElementById('bpm').addEventListener('input', e => {
   P.bpm = +e.target.value;
   document.getElementById('bv').textContent = P.bpm + ' bpm';
   rebuildState();
+  for (const ve of voiceExts) { if (ve.params.enabled) rebuildVoiceState(ve); }
 });
 document.getElementById('scale').addEventListener('change', e => {
   P.scale = e.target.value;
