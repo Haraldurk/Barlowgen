@@ -138,6 +138,23 @@ select option { background: #0c0c20; }
   </div>
 
   <div class="row">
+    <div class="lbl"><span>tonic</span></div>
+    <select id="tonic">
+      <option>C</option><option>C#</option><option>D</option><option>D#</option>
+      <option>E</option><option>F</option><option>F#</option><option>G</option>
+      <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
+    </select>
+  </div>
+  <div class="row">
+    <div class="lbl"><span>octave</span><span id="ov">3</span></div>
+    <input type="range" id="octave" min="1" max="5" step="1" value="3">
+  </div>
+  <div class="row">
+    <div class="lbl"><span>ambitus</span><span id="av">2 oct</span></div>
+    <input type="range" id="ambitus" min="1" max="4" step="1" value="2">
+  </div>
+
+  <div class="row">
     <div class="lbl"><span>timbre</span></div>
     <select id="wave">
       <option value="sine">sine</option>
@@ -296,6 +313,11 @@ function barlowIndis(strat) {
 // SCALES — just intonation ratios + harmonicity
 // ═══════════════════════════════════════════════════════════
 
+const TONICMAP = {
+  C:261.63,'C#':277.18,D:293.66,'D#':311.13,E:329.63,
+  F:349.23,'F#':369.99,G:392.00,'G#':415.30,A:440.00,'A#':466.16,B:493.88
+};
+
 const SCALES = {
   major:       [[1,1],[9,8],[5,4],[4,3],[3,2],[5,3],[15,8]],
   minor:       [[1,1],[9,8],[6,5],[4,3],[3,2],[8,5],[9,5]],
@@ -304,19 +326,20 @@ const SCALES = {
   chromatic:   [[1,1],[16,15],[9,8],[6,5],[5,4],[4,3],[45,32],[3,2],[8,5],[5,3],[9,5],[15,8]]
 };
 
-// Tonic A2 = 110 Hz, 3 octaves
-function buildNotes(scaleName) {
+function buildNotes(scaleName, tonic, octave, ambitus) {
+  tonic = tonic || 'A'; octave = +octave || 3; ambitus = +ambitus || 2;
+  const root = (TONICMAP[tonic] || 440) * Math.pow(2, octave - 4);
   const ratios = SCALES[scaleName] || SCALES.major;
   const notes = [];
-  for (let oct = 0; oct < 3; oct++) {
+  const top = root * Math.pow(2, ambitus) * 1.005;
+  for (let oct = 0; oct <= ambitus; oct++) {
     for (const [p, q] of ratios) {
-      const freq = 110 * Math.pow(2, oct) * p / q;
-      const h = absHarm(p, q);
-      notes.push({ freq, h });
+      const freq = root * Math.pow(2, oct) * p / q;
+      if (freq <= top) notes.push({ freq, h: absHarm(p, q) });
     }
   }
   notes.sort((a, b) => a.freq - b.freq);
-  const maxH = Math.max(...notes.map(n => n.h));
+  const maxH = Math.max(...notes.map(n => n.h), 0.001);
   notes.forEach(n => n.nh = n.h / maxH);
   return notes;
 }
@@ -466,6 +489,7 @@ function stopEngine() {
 
 const P = {
   strat: [3, 2], metricity: 0.65, tonality: 0.70, density: 1,
+  tonic: 'A', octave: 3, ambitus: 2,
   bpm: 72, scale: 'major', wave: 'triangle', volume: 0.5
 };
 
@@ -477,7 +501,7 @@ const state = {
 function rebuildState() {
   const s = P.strat;
   state.indis = barlowIndis(s);
-  state.notes = buildNotes(P.scale);
+  state.notes = buildNotes(P.scale, P.tonic, P.octave, P.ambitus);
   // pulseDur: bpm controls top-level beat; inner factors set subdivision
   const innerQ = s.slice(1).reduce((a, b) => a * b, 1) || 1;
   state.pulseDur = 60 / (P.bpm * innerQ);
@@ -908,7 +932,21 @@ document.getElementById('bpm').addEventListener('input', e => {
 });
 document.getElementById('scale').addEventListener('change', e => {
   P.scale = e.target.value;
-  state.notes = buildNotes(P.scale);
+  state.notes = buildNotes(P.scale, P.tonic, P.octave, P.ambitus);
+});
+document.getElementById('tonic').addEventListener('change', e => {
+  P.tonic = e.target.value;
+  state.notes = buildNotes(P.scale, P.tonic, P.octave, P.ambitus);
+});
+document.getElementById('octave').addEventListener('input', e => {
+  P.octave = +e.target.value;
+  document.getElementById('ov').textContent = P.octave;
+  state.notes = buildNotes(P.scale, P.tonic, P.octave, P.ambitus);
+});
+document.getElementById('ambitus').addEventListener('input', e => {
+  P.ambitus = +e.target.value;
+  document.getElementById('av').textContent = P.ambitus + ' oct';
+  state.notes = buildNotes(P.scale, P.tonic, P.octave, P.ambitus);
 });
 document.getElementById('wave').addEventListener('change', e => {
   P.wave = e.target.value; state.wave = P.wave;
