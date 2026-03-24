@@ -589,8 +589,9 @@ function weightedPick(notes, normRank, tonality) {
   return notes[notes.length - 1];
 }
 
-function firePulse(idx, t, S) {
+function firePulse(idx, t, S, voiceIdx) {
   S = S || state;
+  voiceIdx = voiceIdx || 0;
   const Q = S.indis.length; if (!Q) return;
   const rank = S.indis[idx];
   const nr = Q > 1 ? rank / (Q - 1) : 1;
@@ -617,7 +618,7 @@ function firePulse(idx, t, S) {
       const tFire = t + jOff;
       const dur = S.pulseDur * gate * (1.8 + 0.8 * nr);
       playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan, nr);
-      vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false, S: S });
+      vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false, vi: voiceIdx });
     }
   }
 
@@ -628,14 +629,14 @@ function firePulse(idx, t, S) {
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
       playNote(bn.freq / 2, S.pulseDur * 2.8, P.bassVel * (0.13 + 0.12 * nr), tFire, 'sine', true, null, nr);
-      vQueue.push({ idx, t: tFire, nh: bn.nh, nr: nr * 0.65, bass: true, S: S });
+      vQueue.push({ idx, t: tFire, nh: bn.nh, nr: nr * 0.65, bass: true, vi: voiceIdx });
     }
   }
 }
 
 function scheduler() {
   while (pTime < AC.currentTime + 0.15) {
-    firePulse(pIdx, pTime);
+    firePulse(pIdx, pTime, state, 0);
     pIdx = (pIdx + 1) % (state.indis.length || 1);
     pTime += state.pulseDur;
   }
@@ -643,7 +644,7 @@ function scheduler() {
     if (!ve.params.enabled) continue;
     if (ve.pTime === null) ve.pTime = AC.currentTime + 0.06;
     while (ve.pTime < AC.currentTime + 0.15) {
-      firePulse(ve.pIdx, ve.pTime, ve.state);
+      firePulse(ve.pIdx, ve.pTime, ve.state, voiceExts.indexOf(ve) + 1);
       ve.pIdx = (ve.pIdx + 1) % (ve.state.indis.length || 1);
       ve.pTime += ve.state.pulseDur;
     }
@@ -1015,12 +1016,12 @@ function frame(ts) {
     while (i < vQueue.length) {
       const ev = vQueue[i];
       if (ev.t <= now + 0.03) {
-        const evS = ev.S || state;
+        const vi = ev.vi || 0;
+        const evS = vi === 0 ? state : (voiceExts[vi-1] ? voiceExts[vi-1].state : state);
         const Q = evS.indis.length || state.indis.length;
         const angle = -Math.PI / 2 + (ev.idx / Q) * Math.PI * 2;
-        const vIdx = evS === state ? 0 : (voiceExts[0].state === evS ? 1 : 2);
-        const scale = [1.0, 0.73, 0.50][vIdx];
-        const hoff = [0, 100, -80][vIdx];
+        const scale = [1.0, 0.73, 0.50][vi] || 1.0;
+        const hoff = [0, 100, -80][vi] || 0;
         const R = ringR() * scale;
         const px = CX + Math.cos(angle) * R;
         const py = CY + Math.sin(angle) * R;
