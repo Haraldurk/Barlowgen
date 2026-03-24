@@ -498,11 +498,12 @@ window.addEventListener('resize', resize);
 resize();
 
 // Color: harmonicity nh=0 → amber/gold, nh=1 → cool blue
-function hcolor(nh, alpha) {
-  const hue = Math.round(38 + nh * 188); // 38=amber … 226=blue
+function hcolor(nh, alpha, hoff) {
+  hoff = hoff || 0;
+  const hue = Math.round(38 + nh * 188 + hoff);
   const sat = 68 + Math.round(nh * 16);
   const lit = 52 + Math.round(nh * 18);
-  return `hsla(${hue},${sat}%,${lit}%,${(alpha).toFixed(3)})`;
+  return `hsla(${hue},${sat}%,${lit}%,${alpha.toFixed(3)})`;
 }
 
 function ringR() { return Math.min(W, H) * 0.30; }
