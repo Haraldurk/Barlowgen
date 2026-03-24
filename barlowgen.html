@@ -546,10 +546,11 @@ function playNote(freq, dur, amp, t, wave, bass, chan, nr) {
   osc.type = bass ? 'sine' : wave;
   osc.frequency.value = freq;
 
-  const att = bass ? 0.04 : 0.012;
+  const att = bass ? 0.06 : 0.018 + 0.04 * (1 - (nr || 0));
+  const susPoint = bass ? 0.5 : 0.55 + 0.3 * (nr || 0);
   env.gain.setValueAtTime(0, t);
   env.gain.linearRampToValueAtTime(amp, t + att);
-  env.gain.setValueAtTime(amp * 0.9, t + dur * 0.35);
+  env.gain.setValueAtTime(amp * 0.88, t + dur * susPoint);
   env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
   osc.connect(flt); flt.connect(env);
