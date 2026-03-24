@@ -589,8 +589,8 @@ function weightedPick(notes, normRank, tonality) {
   return notes[notes.length - 1];
 }
 
-function firePulse(idx, t) {
-  const S = state;
+function firePulse(idx, t, S) {
+  S = S || state;
   const Q = S.indis.length; if (!Q) return;
   const rank = S.indis[idx];
   const nr = Q > 1 ? rank / (Q - 1) : 1;
