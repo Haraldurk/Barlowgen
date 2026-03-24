@@ -615,7 +615,7 @@ function firePulse(idx, t) {
       const gate = S.gate !== undefined ? S.gate : 0.8;
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
-      const dur = S.pulseDur * gate * (1.2 + 0.6 * nr);
+      const dur = S.pulseDur * gate * (1.8 + 0.8 * nr);
       playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan);
       vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false });
     }
@@ -1043,8 +1043,8 @@ function frame(ts) {
 
   drawField();
   drawRing(state, 1.0, 0);
-  if (voiceExts[0].params.enabled) drawRing(voiceExts[0].state, 0.73, 100);
-  if (voiceExts[1].params.enabled) drawRing(voiceExts[1].state, 0.50, -80);
+  drawRing(voiceExts[0].state, 0.73, 100);
+  drawRing(voiceExts[1].state, 0.50, -80);
   ripples.forEach(r => r.draw());
   particles.forEach(p => p.draw());
   drawCenter();
@@ -1425,7 +1425,7 @@ btn.addEventListener('click', () => {
 });
 
 for (const ve of voiceExts) {
-  if (ve.params.enabled) rebuildVoiceState(ve);
+  rebuildVoiceState(ve);
 }
 renderPresets();
 requestAnimationFrame(frame);
