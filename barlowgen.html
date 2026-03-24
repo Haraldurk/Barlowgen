@@ -445,7 +445,7 @@ function firePulse(idx, t) {
     if (note) {
       const amp = 0.09 + 0.20 * nr;
       const gate = S.gate !== undefined ? S.gate : 0.5;
-      const dur = S.pulseDur * gate * (0.8 + 0.4 * nr);
+      const dur = S.pulseDur * (0.3 + gate * (1.0 + 0.6 * nr));
       playNote(note.freq, dur, amp, t, S.wave, false);
       vQueue.push({ idx, t, nh: note.nh, nr, bass: false });
     }
