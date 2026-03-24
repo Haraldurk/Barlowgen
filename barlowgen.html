@@ -643,7 +643,7 @@ function scheduler() {
     if (!ve.params.enabled) continue;
     if (ve.pTime === null) ve.pTime = AC.currentTime + 0.06;
     while (ve.pTime < AC.currentTime + 0.15) {
-      firePulse(ve.state, ve.pIdx, ve.pTime);
+      firePulse(ve.pIdx, ve.pTime, ve.state);
       ve.pIdx = (ve.pIdx + 1) % (ve.state.indis.length || 1);
       ve.pTime += ve.state.pulseDur;
     }
