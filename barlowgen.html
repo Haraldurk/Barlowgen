@@ -554,7 +554,7 @@ function playNote(freq, dur, amp, t, wave, bass, chan, nr) {
     const mn = freqToMidi(freq);
     if (mn >= 0 && mn <= 127) {
       const vel = Math.max(1, Math.min(127,
-        Math.round(P.velocityMin + Math.pow(nr, 0.65) * (P.velocityMax - P.velocityMin))
+        Math.round(P.velocityMin + Math.pow(nr, 0.5) * (P.velocityMax - P.velocityMin))
       ));
       midiNoteOn(mn, vel, chan, t);
       midiNoteOff(mn, chan, t + dur);
@@ -617,7 +617,7 @@ function firePulse(idx, t, S, voiceIdx) {
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
       // Barlow duration: minimum 1.5 + nr * 1.0 scaling
-      const dur = S.pulseDur * gate * (1.5 + nr * 1.0);
+      const dur = S.pulseDur * gate * (1.4 + 1.2 * nr);
       playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan, nr);
       vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false, vi: voiceIdx });
     }
@@ -630,7 +630,7 @@ function firePulse(idx, t, S, voiceIdx) {
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
       // Bass also follows curved rank velocity
-      playNote(bn.freq / 2, S.pulseDur * 1.8, P.bassVel * 0.18 * nr, tFire, 'sine', true, null, nr);
+      playNote(bn.freq / 2, S.pulseDur * 2.0, P.bassVel * 0.12, tFire, 'sine', true, null);
       vQueue.push({ idx, t: tFire, nh: bn.nh, nr: nr * 0.65, bass: true, vi: voiceIdx });
     }
   }
