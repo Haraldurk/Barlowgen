@@ -506,15 +506,23 @@ function initAudio() {
   // Lush ping-pong delay reverb
   const d1 = AC.createDelay(3); d1.delayTime.value = 0.37;
   const d2 = AC.createDelay(3); d2.delayTime.value = 0.56;
-  const fb1 = AC.createGain(); fb1.gain.value = 0.38;
-  const fb2 = AC.createGain(); fb2.gain.value = 0.34;
-  const wet = AC.createGain(); wet.gain.value = 0.24;
+  const fb1 = AC.createGain(); fb1.gain.value = 0.28;
+  const fb2 = AC.createGain(); fb2.gain.value = 0.24;
+  const wet = AC.createGain(); wet.gain.value = 0.20;
 
   d1.connect(fb1); fb1.connect(d1);
   d2.connect(fb2); fb2.connect(d2);
   d1.connect(d2); d1.connect(wet); d2.connect(wet);
   wet.connect(master);
-  master.connect(AC.destination);
+
+  const comp = AC.createDynamicsCompressor();
+  comp.threshold.value = -18;
+  comp.knee.value = 10;
+  comp.ratio.value = 4;
+  comp.attack.value = 0.004;
+  comp.release.value = 0.18;
+  master.connect(comp);
+  comp.connect(AC.destination);
   reverbIn = d1;
 
   if (navigator.requestMIDIAccess) {
