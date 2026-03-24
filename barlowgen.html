@@ -169,8 +169,8 @@ select option { background: #0c0c20; }
   </div>
 
   <div class="row">
-    <div class="lbl"><span>gate</span><span id="gv">0.50</span></div>
-    <input type="range" id="gate" min="0.05" max="1" step="0.01" value="0.5">
+    <div class="lbl"><span>gate</span><span id="gv">0.80</span></div>
+    <input type="range" id="gate" min="0.05" max="1" step="0.01" value="0.8">
   </div>
 
   <button id="btn">▶  start</button>
@@ -444,8 +444,8 @@ function firePulse(idx, t) {
     const note = weightedPick(S.notes, nr, S.tonality);
     if (note) {
       const amp = 0.09 + 0.20 * nr;
-      const gate = S.gate !== undefined ? S.gate : 0.5;
-      const dur = S.pulseDur * (0.3 + gate * (1.0 + 0.6 * nr));
+      const gate = S.gate !== undefined ? S.gate : 0.8;
+      const dur = S.pulseDur * gate;
       playNote(note.freq, dur, amp, t, S.wave, false);
       vQueue.push({ idx, t, nh: note.nh, nr, bass: false });
     }
@@ -495,13 +495,13 @@ function stopEngine() {
 
 const P = {
   strat: [3, 2], metricity: 0.65, tonality: 0.70, density: 1,
-  tonic: 'A', octave: 3, ambitus: 2, gate: 0.5,
+  tonic: 'A', octave: 3, ambitus: 2, gate: 0.8,
   bpm: 72, scale: 'major', wave: 'triangle', volume: 0.5
   };
 
   const state = {
   indis: [], notes: [], pulseDur: 0.4,
-  metricity: 0.65, tonality: 0.70, density: 1, gate: 0.5, wave: 'triangle'
+  metricity: 0.65, tonality: 0.70, density: 1, gate: 0.8, wave: 'triangle'
   };
 
 function rebuildState() {
