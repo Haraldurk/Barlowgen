@@ -577,7 +577,7 @@ function firePulse(idx, t) {
 
   // Bass on strong pulses (coupled to harmonic field)
   if (nr > 0.68 && P.bassVel > 0 && Math.random() < 0.78) {
-    const bn = weightedPick(S.notes.slice(0, 6), nr, S.tonality);
+    const bn = weightedPick((S.notes.aroha || S.notes).slice(0, 6), nr, S.tonality);
     if (bn) {
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
