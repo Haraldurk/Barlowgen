@@ -596,9 +596,9 @@ function firePulse(idx, t, S, voiceIdx) {
   const rank = S.indis[idx];
   const nr = Q > 1 ? rank / (Q - 1) : 1;
 
-  // Metricity gates probability
+  // Metricity gates probability — power curve for more natural hierarchy
   const dens = S.density !== undefined ? S.density : 1;
-  const prob = S.metricity < 0.001 ? dens : Math.max(0, dens * (1 - S.metricity * (1 - nr)));
+  const prob = S.metricity < 0.001 ? dens : Math.max(0, dens * Math.pow(1 - S.metricity * (1 - nr), 1.5));
 
   if (Math.random() < prob) {
     const noteArr = S.notes.directional
@@ -616,7 +616,8 @@ function firePulse(idx, t, S, voiceIdx) {
       const gate = S.gate !== undefined ? S.gate : 0.8;
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
-      const dur = S.pulseDur * gate * (1.8 + 0.8 * nr);
+      // Barlow duration: minimum 1.5 + nr * 1.0 scaling
+      const dur = S.pulseDur * gate * (1.5 + nr * 1.0);
       playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan, nr);
       vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false, vi: voiceIdx });
     }
@@ -628,7 +629,8 @@ function firePulse(idx, t, S, voiceIdx) {
     if (bn) {
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
-      playNote(bn.freq / 2, S.pulseDur * 1.8, P.bassVel * 0.18 * nr, tFire, 'sine', true, null);
+      // Bass also follows curved rank velocity
+      playNote(bn.freq / 2, S.pulseDur * 1.8, P.bassVel * 0.18 * nr, tFire, 'sine', true, null, nr);
       vQueue.push({ idx, t: tFire, nh: bn.nh, nr: nr * 0.65, bass: true, vi: voiceIdx });
     }
   }
