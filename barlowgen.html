@@ -918,10 +918,10 @@ const VOICE_HUE_OFFSETS = [0, 100, -80];     // V1 amber-blue, V2 green-magenta,
 // Particles
 const particles = [];
 class Particle {
-  constructor(angle, nh, nr, hdir) {
+  constructor(angle, nh, nr, hdir, scale) {
     this.nh = nh; this.nr = nr; this.hdir = hdir || 0;
     this.life = 0; this.maxLife = 2.0 + nr * 3.2;
-    const R = ringR();
+    const R = ringR() * (scale || 1.0);
     this.x = CX + Math.cos(angle) * R;
     this.y = CY + Math.sin(angle) * R;
     // Drift toward center with gentle spiral
@@ -1026,7 +1026,7 @@ function frame(ts) {
         const px = CX + Math.cos(angle) * R;
         const py = CY + Math.sin(angle) * R;
         const hdir = state.direction >= 0 ? 15 : -15;
-        if (particles.length < 280) particles.push(new Particle(angle, ev.nh, ev.nr, hdir));
+        if (particles.length < 280) particles.push(new Particle(angle, ev.nh, ev.nr, hdir, scale));
         ripples.push(new Ripple(px, py, ev.nr, ev.nh));
         if (ev.nr > 0.72) cPulse = Math.max(cPulse, ev.nr);
         vQueue.splice(i, 1);
