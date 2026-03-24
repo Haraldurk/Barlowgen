@@ -168,6 +168,11 @@ select option { background: #0c0c20; }
     <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
   </div>
 
+  <div class="row">
+    <div class="lbl"><span>gate</span><span id="gv">0.50</span></div>
+    <input type="range" id="gate" min="0.05" max="1" step="0.01" value="0.5">
+  </div>
+
   <button id="btn">▶  start</button>
 
   <div id="status">
@@ -439,7 +444,8 @@ function firePulse(idx, t) {
     const note = weightedPick(S.notes, nr, S.tonality);
     if (note) {
       const amp = 0.09 + 0.20 * nr;
-      const dur = S.pulseDur * (1.3 + 1.6 * nr);
+      const gate = S.gate !== undefined ? S.gate : 0.5;
+      const dur = S.pulseDur * gate * (0.8 + 0.4 * nr);
       playNote(note.freq, dur, amp, t, S.wave, false);
       vQueue.push({ idx, t, nh: note.nh, nr, bass: false });
     }
@@ -489,14 +495,14 @@ function stopEngine() {
 
 const P = {
   strat: [3, 2], metricity: 0.65, tonality: 0.70, density: 1,
-  tonic: 'A', octave: 3, ambitus: 2,
+  tonic: 'A', octave: 3, ambitus: 2, gate: 0.5,
   bpm: 72, scale: 'major', wave: 'triangle', volume: 0.5
-};
+  };
 
-const state = {
+  const state = {
   indis: [], notes: [], pulseDur: 0.4,
-  metricity: 0.65, tonality: 0.70, wave: 'triangle'
-};
+  metricity: 0.65, tonality: 0.70, density: 1, gate: 0.5, wave: 'triangle'
+  };
 
 function rebuildState() {
   const s = P.strat;
@@ -508,6 +514,7 @@ function rebuildState() {
   state.metricity = P.metricity;
   state.tonality = P.tonality;
   state.density = P.density;
+  state.gate = P.gate;
   state.wave = P.wave;
   if (master) master.gain.value = P.volume;
   updateStatus();
@@ -955,6 +962,11 @@ document.getElementById('volume').addEventListener('input', e => {
   P.volume = +e.target.value;
   document.getElementById('vv').textContent = P.volume.toFixed(2);
   if (master) master.gain.value = P.volume;
+});
+document.getElementById('gate').addEventListener('input', e => {
+  P.gate = +e.target.value;
+  document.getElementById('gv').textContent = P.gate.toFixed(2);
+  state.gate = P.gate;
 });
 
 const btn = document.getElementById('btn');
