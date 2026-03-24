@@ -172,6 +172,14 @@ select option { background: #0c0c20; }
     <div class="lbl"><span>gate</span><span id="gv">0.80</span></div>
     <input type="range" id="gate" min="0.05" max="1" step="0.01" value="0.8">
   </div>
+  <div class="row">
+    <div class="lbl"><span>jitter</span><span id="jv">0.00</span></div>
+    <input type="range" id="jitter" min="0" max="1" step="0.01" value="0">
+  </div>
+  <div class="row">
+    <div class="lbl"><span>bass vel</span><span id="bsv">0.50</span></div>
+    <input type="range" id="bassVel" min="0" max="1" step="0.01" value="0.5">
+  </div>
 
   <button id="btn">▶  start</button>
 
@@ -445,18 +453,22 @@ function firePulse(idx, t) {
     if (note) {
       const amp = 0.09 + 0.20 * nr;
       const gate = S.gate !== undefined ? S.gate : 0.8;
+      const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
+      const tFire = t + jOff;
       const dur = S.pulseDur * gate;
-      playNote(note.freq, dur, amp, t, S.wave, false);
-      vQueue.push({ idx, t, nh: note.nh, nr, bass: false });
+      playNote(note.freq, dur, amp, tFire, S.wave, false);
+      vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false });
     }
   }
 
   // Bass on strong pulses (coupled to harmonic field)
-  if (nr > 0.68 && Math.random() < 0.78) {
+  if (nr > 0.68 && P.bassVel > 0 && Math.random() < 0.78) {
     const bn = weightedPick(S.notes.slice(0, 6), nr, S.tonality);
     if (bn) {
-      playNote(bn.freq / 2, S.pulseDur * 2.8, 0.13 + 0.12 * nr, t, 'sine', true);
-      vQueue.push({ idx, t, nh: bn.nh, nr: nr * 0.65, bass: true });
+      const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
+      const tFire = t + jOff;
+      playNote(bn.freq / 2, S.pulseDur * 2.8, P.bassVel * (0.13 + 0.12 * nr), tFire, 'sine', true);
+      vQueue.push({ idx, t: tFire, nh: bn.nh, nr: nr * 0.65, bass: true });
     }
   }
 }
@@ -496,9 +508,10 @@ function stopEngine() {
 const P = {
   strat: [3, 2], metricity: 0.65, tonality: 0.70, density: 1,
   tonic: 'A', octave: 3, ambitus: 2, gate: 0.8,
+  jitter: 0,
+  bassVel: 0.5,
   bpm: 72, scale: 'major', wave: 'triangle', volume: 0.5
   };
-
   const state = {
   indis: [], notes: [], pulseDur: 0.4,
   metricity: 0.65, tonality: 0.70, density: 1, gate: 0.8, wave: 'triangle'
@@ -967,6 +980,14 @@ document.getElementById('gate').addEventListener('input', e => {
   P.gate = +e.target.value;
   document.getElementById('gv').textContent = P.gate.toFixed(2);
   state.gate = P.gate;
+});
+document.getElementById('jitter').addEventListener('input', e => {
+  P.jitter = +e.target.value;
+  document.getElementById('jv').textContent = P.jitter.toFixed(2);
+});
+document.getElementById('bassVel').addEventListener('input', e => {
+  P.bassVel = +e.target.value;
+  document.getElementById('bsv').textContent = P.bassVel.toFixed(2);
 });
 
 const btn = document.getElementById('btn');
