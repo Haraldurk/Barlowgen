@@ -29,7 +29,7 @@ canvas { display: block; position: fixed; top: 0; left: 0; }
 }
 #panel header h1 {
   font-size: 13px; font-weight: 500; letter-spacing: 0.15em;
-  color: #e8c840; text-transform: uppercase; margin-bottom: 2px;
+  color: #7080c0; text-transform: uppercase; margin-bottom: 2px;
 }
 #panel header p {
   font-size: 9px; letter-spacing: 0.06em; color: #303060;
@@ -320,7 +320,9 @@ function buildNotes(scaleName) {
 // AUDIO ENGINE
 // ═══════════════════════════════════════════════════════════
 
-let AC = null, master = null, reverbIn = null;
+const midi={out:null,chan:1,perfOffset:0};
+const voiceExts=[];
+let AC=null,master=null,reverbIn=null;
 
 function initAudio() {
   AC = new (window.AudioContext || window.webkitAudioContext)();
@@ -498,12 +500,11 @@ window.addEventListener('resize', resize);
 resize();
 
 // Color: harmonicity nh=0 → amber/gold, nh=1 → cool blue
-function hcolor(nh, alpha, hoff) {
-  hoff = hoff || 0;
-  const hue = Math.round(38 + nh * 188 + hoff);
+function hcolor(nh, alpha) {
+  const hue = Math.round(38 + nh * 188); // 38=amber … 226=blue
   const sat = 68 + Math.round(nh * 16);
   const lit = 52 + Math.round(nh * 18);
-  return `hsla(${hue},${sat}%,${lit}%,${alpha.toFixed(3)})`;
+  return `hsla(${hue},${sat}%,${lit}%,${(alpha).toFixed(3)})`;
 }
 
 function ringR() { return Math.min(W, H) * 0.30; }
