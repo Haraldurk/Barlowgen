@@ -554,7 +554,7 @@ function playNote(freq, dur, amp, t, wave, bass, chan, nr) {
     const mn = freqToMidi(freq);
     if (mn >= 0 && mn <= 127) {
       const vel = Math.max(1, Math.min(127,
-        Math.round(P.velocityMin + nr * (P.velocityMax - P.velocityMin))
+        Math.round(P.velocityMin + Math.pow(nr, 0.65) * (P.velocityMax - P.velocityMin))
       ));
       midiNoteOn(mn, vel, chan, t);
       midiNoteOff(mn, chan, t + dur);
@@ -686,8 +686,8 @@ const P = {
   jitter: 0,
   bassVel: 0.5,
   midiChan: 1,
-  velocityMin: 40,
-  velocityMax: 110,
+  velocityMin: 45,
+  velocityMax: 98,
   bpm: 72, scale: 'major', wave: 'triangle', volume: 0.5
   };
   const state = {
