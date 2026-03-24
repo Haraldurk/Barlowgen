@@ -174,6 +174,21 @@ select option { background: #0c0c20; }
       <option value="bhimpalasi">bhimpalasi ↑↓</option>
       <option value="yaman">yaman</option>
       <option value="bhairavi">bhairavi</option>
+      <option value="dorian">dorian</option>
+      <option value="phrygian">phrygian</option>
+      <option value="lydian">lydian</option>
+      <option value="mixolydian">mixolydian</option>
+      <option value="phrygianDom">phrygian dominant</option>
+      <option value="lydianDom">lydian dominant</option>
+      <option value="doubleHarmonic">double harmonic</option>
+      <option value="hungarianMinor">hungarian minor</option>
+      <option value="octatonic">octatonic</option>
+      <option value="hirajoshi">hirajoshi</option>
+      <option value="insen">insen</option>
+      <option value="wholetone">whole tone</option>
+      <option value="kafi">kafi ↑↓</option>
+      <option value="todi">todi ↑↓</option>
+      <option value="marwa">marwa ↑↓</option>
     </select>
   </div>
   <div class="row">
@@ -461,6 +476,30 @@ const SCALES = {
   bhairavi: {
     aroha:   [[1,1],[16,15],[6,5],[4,3],[3,2],[8,5],[9,5]],
     avaroha: [[1,1],[16,15],[6,5],[4,3],[3,2],[8,5],[9,5]]
+  },
+  dorian:       [[1,1],[9,8],[32,27],[4,3],[3,2],[27,16],[16,9]],
+  phrygian:     [[1,1],[16,15],[6,5],[4,3],[3,2],[8,5],[9,5]],
+  lydian:       [[1,1],[9,8],[5,4],[45,32],[3,2],[5,3],[15,8]],
+  mixolydian:   [[1,1],[9,8],[5,4],[4,3],[3,2],[5,3],[9,5]],
+  phrygianDom:  [[1,1],[16,15],[5,4],[4,3],[3,2],[8,5],[9,5]],
+  lydianDom:    [[1,1],[9,8],[5,4],[45,32],[3,2],[5,3],[9,5]],
+  doubleHarmonic:[[1,1],[16,15],[5,4],[4,3],[3,2],[8,5],[15,8]],
+  hungarianMinor:[[1,1],[9,8],[6,5],[45,32],[3,2],[8,5],[15,8]],
+  octatonic:    [[1,1],[9,8],[6,5],[4,3],[45,32],[8,5],[9,5],[15,8]],
+  hirajoshi:    [[1,1],[9,8],[6,5],[3,2],[8,5]],
+  insen:        [[1,1],[16,15],[4,3],[3,2],[16,9]],
+  wholetone:    [[1,1],[9,8],[5,4],[45,32],[25,16],[225,128]],
+  kafi: {
+    aroha:   [[1,1],[9,8],[32,27],[4,3],[3,2],[27,16],[16,9]],
+    avaroha: [[1,1],[9,8],[32,27],[4,3],[3,2],[8,5],[16,9]]
+  },
+  todi: {
+    aroha:   [[1,1],[16,15],[32,27],[45,32],[3,2],[8,5],[15,8]],
+    avaroha: [[1,1],[16,15],[32,27],[45,32],[3,2],[8,5],[15,8]]
+  },
+  marwa: {
+    aroha:   [[1,1],[16,15],[5,4],[45,32],[5,3],[15,8]],
+    avaroha: [[1,1],[9,8],[5,4],[45,32],[5,3],[16,15]]
   }
 };
 
