@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BARLOWGEN</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #05050f; overflow: hidden; }
+canvas { display: block; position: fixed; top: 0; left: 0; }
+
+#panel {
+  position: fixed; top: 20px; right: 20px; width: 252px;
+  background: rgba(4, 4, 16, 0.82);
+  border: 0.5px solid rgba(80, 110, 200, 0.18);
+  border-radius: 14px; padding: 18px 18px 16px;
+  backdrop-filter: blur(24px);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: #5060a0;
+  z-index: 10;
+}
+
+#panel header {
+  margin-bottom: 16px;
+  border-bottom: 0.5px solid rgba(80,110,200,0.1);
+  padding-bottom: 12px;
+}
+#panel header h1 {
+  font-size: 13px; font-weight: 500; letter-spacing: 0.15em;
+  color: #e8c840; text-transform: uppercase; margin-bottom: 2px;
+}
+#panel header p {
+  font-size: 9px; letter-spacing: 0.06em; color: #303060;
+  text-transform: uppercase;
+}
+
+.row { margin-bottom: 10px; }
+.lbl {
+  display: flex; justify-content: space-between;
+  font-size: 10px; letter-spacing: 0.04em;
+  color: #404080; margin-bottom: 4px;
+}
+.lbl span { color: #7080b0; }
+
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 1px;
+  background: rgba(80,100,200,0.25); cursor: pointer; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 10px; height: 10px;
+  border-radius: 50%; background: #5566cc; cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #5566cc; border: none; cursor: pointer;
+}
+
+input[type=text], select {
+  width: 100%; padding: 5px 8px;
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid rgba(80,100,200,0.18);
+  border-radius: 6px; color: #8090c0;
+  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+  outline: none; cursor: pointer;
+}
+input[type=text]:focus { border-color: rgba(80,100,200,0.4); }
+select option { background: #0c0c20; }
+
+#btn {
+  width: 100%; padding: 9px; margin-top: 10px;
+  background: rgba(50,70,180,0.1);
+  border: 0.5px solid rgba(50,70,180,0.3);
+  border-radius: 8px; color: #6070c0;
+  font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s;
+}
+#btn:hover { background: rgba(50,70,180,0.2); color: #8090e0; }
+#btn.on { background: rgba(180,60,60,0.1); border-color: rgba(180,60,60,0.3); color: #b07080; }
+
+#status {
+  margin-top: 12px; font-size: 9px; letter-spacing: 0.05em;
+  color: #2a2a50; line-height: 1.8; border-top: 0.5px solid rgba(80,100,200,0.08);
+  padding-top: 10px;
+}
+
+.divider { height: 0.5px; background: rgba(80,100,200,0.08); margin: 12px 0; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="panel">
+  <header>
+    <h1>barlowgen</h1>
+    <p>after clarence barlow · autobusk 1986</p>
+  </header>
+
+  <div class="row">
+    <div class="lbl"><span>stratification</span></div>
+    <input type="text" id="strat" value="3 2" spellcheck="false"
+      placeholder="e.g. 2 3  or  3 2 2">
+  </div>
+
+  <div class="row">
+    <div class="lbl"><span>metricity</span><span id="mv">0.65</span></div>
+    <input type="range" id="metricity" min="0" max="1" step="0.01" value="0.65">
+  </div>
+
+  <div class="row">
+    <div class="lbl"><span>tonality</span><span id="tv">0.70</span></div>
+    <input type="range" id="tonality" min="0" max="1" step="0.01" value="0.70">
+  </div>
+
+  <div class="row">
+    <div class="lbl"><span>tempo</span><span id="bv">72 bpm</span></div>
+    <input type="range" id="bpm" min="30" max="220" step="1" value="72">
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="row">
+    <div class="lbl"><span>scale</span></div>
+    <select id="scale">
+      <option value="major">major (just intonation)</option>
+      <option value="minor">minor (just intonation)</option>
+      <option value="pentatonic">pentatonic</option>
+      <option value="pythagorean">pythagorean</option>
+      <option value="chromatic">chromatic (just)</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <div class="lbl"><span>timbre</span></div>
+    <select id="wave">
+      <option value="sine">sine</option>
+      <option value="triangle" selected>triangle</option>
+      <option value="sawtooth">sawtooth</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <div class="lbl"><span>volume</span><span id="vv">0.50</span></div>
+    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <button id="btn">▶  start</button>
+
+  <div id="status">
+    <div id="s-pulses">6 pulses  ·  [3 × 2]</div>
+    <div id="s-harm">harmonicity  →  color</div>
+    <div id="s-indis">indispensability  →  size</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// BARLOW MATHEMATICS
+// ═══════════════════════════════════════════════════════════
+
+function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+function primeFactors(n) {
+  const f = {};
+  for (let d = 2; d * d <= n; d++) {
+    while (n % d === 0) { f[d] = (f[d] || 0) + 1; n /= d; }
+  }
+  if (n > 1) f[n] = (f[n] || 0) + 1;
+  return f;
+}
+
+// Barlow indigestibility: ξ(N) = Σ e·2(p−1)²/p
+function indig(n) {
+  if (n <= 1) return 0;
+  return Object.entries(primeFactors(n))
+    .reduce((s, [p, e]) => s + e * 2 * Math.pow(+p - 1, 2) / +p, 0);
+}
+
+// Barlow harmonicity: H(p:q) = 1 / (ξ(p) + ξ(q)), unsigned
+function absHarm(p, q) {
+  const g = gcd(p, q); p /= g; q /= g;
+  if (p === q) return 100;
+  return 1 / (indig(p) + indig(q));
+}
+
+// Barlow indispensability — recursive stratification
+function singleOrder(q) {
+  const o = [0];
+  for (let i = q - 1; i >= 1; i--) o.push(i);
+  return o;
+}
+function revOrder(q) {
+  const o = [];
+  for (let i = q - 1; i >= 0; i--) o.push(i);
+  return o;
+}
+function barlowSorted(strat) {
+  if (!strat.length) return [0];
+  if (strat.length === 1) return singleOrder(strat[0]);
+  const q1 = strat[0], rest = strat.slice(1);
+  const Qr = rest.reduce((a, b) => a * b, 1);
+  const sub = barlowSorted(rest);
+  const bn = singleOrder(q1), br = revOrder(q1);
+  const result = [];
+  for (let i = 0; i < sub.length; i++) {
+    const bo = i === 0 ? bn : br;
+    for (const b of bo) result.push(b * Qr + sub[i]);
+  }
+  return result;
+}
+function barlowIndis(strat) {
+  const Q = strat.reduce((a, b) => a * b, 1);
+  const sorted = barlowSorted(strat);
+  const arr = new Array(Q);
+  sorted.forEach((pos, i) => { arr[pos] = Q - 1 - i; });
+  return arr;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCALES — just intonation ratios + harmonicity
+// ═══════════════════════════════════════════════════════════
+
+const SCALES = {
+  major:       [[1,1],[9,8],[5,4],[4,3],[3,2],[5,3],[15,8]],
+  minor:       [[1,1],[9,8],[6,5],[4,3],[3,2],[8,5],[9,5]],
+  pentatonic:  [[1,1],[9,8],[5,4],[3,2],[5,3]],
+  pythagorean: [[1,1],[9,8],[81,64],[4,3],[3,2],[27,16],[243,128]],
+  chromatic:   [[1,1],[16,15],[9,8],[6,5],[5,4],[4,3],[45,32],[3,2],[8,5],[5,3],[9,5],[15,8]]
+};
+
+// Tonic A2 = 110 Hz, 3 octaves
+function buildNotes(scaleName) {
+  const ratios = SCALES[scaleName] || SCALES.major;
+  const notes = [];
+  for (let oct = 0; oct < 3; oct++) {
+    for (const [p, q] of ratios) {
+      const freq = 110 * Math.pow(2, oct) * p / q;
+      const h = absHarm(p, q);
+      notes.push({ freq, h });
+    }
+  }
+  notes.sort((a, b) => a.freq - b.freq);
+  const maxH = Math.max(...notes.map(n => n.h));
+  notes.forEach(n => n.nh = n.h / maxH);
+  return notes;
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUDIO ENGINE
+// ═══════════════════════════════════════════════════════════
+
+let AC = null, master = null, reverbIn = null;
+
+function initAudio() {
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  master = AC.createGain();
+  master.gain.value = P.volume;
+
+  // Lush ping-pong delay reverb
+  const d1 = AC.createDelay(3); d1.delayTime.value = 0.37;
+  const d2 = AC.createDelay(3); d2.delayTime.value = 0.56;
+  const fb1 = AC.createGain(); fb1.gain.value = 0.38;
+  const fb2 = AC.createGain(); fb2.gain.value = 0.34;
+  const wet = AC.createGain(); wet.gain.value = 0.24;
+
+  d1.connect(fb1); fb1.connect(d1);
+  d2.connect(fb2); fb2.connect(d2);
+  d1.connect(d2); d1.connect(wet); d2.connect(wet);
+  wet.connect(master);
+  master.connect(AC.destination);
+  reverbIn = d1;
+}
+
+function playNote(freq, dur, amp, t, wave, bass) {
+  const osc = AC.createOscillator();
+  const env = AC.createGain();
+  const flt = AC.createBiquadFilter();
+
+  flt.type = 'lowpass';
+  flt.frequency.value = bass ? freq * 2.2 : freq * 6;
+  flt.Q.value = 0.6;
+
+  osc.type = bass ? 'sine' : wave;
+  osc.frequency.value = freq;
+
+  const att = bass ? 0.04 : 0.012;
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(amp, t + att);
+  env.gain.setValueAtTime(amp * 0.9, t + dur * 0.35);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+  osc.connect(flt); flt.connect(env);
+  env.connect(master);
+  if (!bass) env.connect(reverbIn);
+
+  osc.start(t); osc.stop(t + dur + 0.05);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCHEDULER
+// ═══════════════════════════════════════════════════════════
+
+let pTime = 0, pIdx = 0, schedTick = null, playing = false;
+const vQueue = []; // visual events keyed to audio time
+
+function weightedPick(notes, normRank, tonality) {
+  if (!notes.length) return null;
+  // Barlow coupling: tonality rises on strong beats
+  const lt = tonality * (0.3 + 0.7 * normRank);
+  const weights = notes.map(n =>
+    lt < 0.001 ? 1 : Math.pow(Math.max(0.005, n.nh), 2.5 * lt)
+  );
+  let r = Math.random() * weights.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < notes.length; i++) {
+    r -= weights[i]; if (r <= 0) return notes[i];
+  }
+  return notes[notes.length - 1];
+}
+
+function firePulse(idx, t) {
+  const S = state;
+  const Q = S.indis.length; if (!Q) return;
+  const rank = S.indis[idx];
+  const nr = Q > 1 ? rank / (Q - 1) : 1;
+
+  // Metricity gates probability
+  const prob = S.metricity < 0.001 ? 1 : Math.max(0, 1 - S.metricity * (1 - nr));
+
+  if (Math.random() < prob) {
+    const note = weightedPick(S.notes, nr, S.tonality);
+    if (note) {
+      const amp = 0.09 + 0.20 * nr;
+      const dur = S.pulseDur * (1.3 + 1.6 * nr);
+      playNote(note.freq, dur, amp, t, S.wave, false);
+      vQueue.push({ idx, t, nh: note.nh, nr, bass: false });
+    }
+  }
+
+  // Bass on strong pulses (coupled to harmonic field)
+  if (nr > 0.68 && Math.random() < 0.78) {
+    const bn = weightedPick(S.notes.slice(0, 6), nr, S.tonality);
+    if (bn) {
+      playNote(bn.freq / 2, S.pulseDur * 2.8, 0.13 + 0.12 * nr, t, 'sine', true);
+      vQueue.push({ idx, t, nh: bn.nh, nr: nr * 0.65, bass: true });
+    }
+  }
+}
+
+function scheduler() {
+  while (pTime < AC.currentTime + 0.15) {
+    firePulse(pIdx, pTime);
+    pIdx = (pIdx + 1) % (state.indis.length || 1);
+    pTime += state.pulseDur;
+  }
+}
+
+function startEngine() {
+  if (!AC) initAudio();
+  if (AC.state === 'suspended') AC.resume();
+  rebuildState();
+  pTime = AC.currentTime + 0.06;
+  pIdx = 0;
+  scheduler();
+  schedTick = setInterval(scheduler, 48);
+  playing = true;
+}
+function stopEngine() {
+  clearInterval(schedTick); schedTick = null; playing = false;
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+
+const P = {
+  strat: [3, 2], metricity: 0.65, tonality: 0.70,
+  bpm: 72, scale: 'major', wave: 'triangle', volume: 0.5
+};
+
+const state = {
+  indis: [], notes: [], pulseDur: 0.4,
+  metricity: 0.65, tonality: 0.70, wave: 'triangle'
+};
+
+function rebuildState() {
+  const s = P.strat;
+  state.indis = barlowIndis(s);
+  state.notes = buildNotes(P.scale);
+  // pulseDur: bpm controls top-level beat; inner factors set subdivision
+  const innerQ = s.slice(1).reduce((a, b) => a * b, 1) || 1;
+  state.pulseDur = 60 / (P.bpm * innerQ);
+  state.metricity = P.metricity;
+  state.tonality = P.tonality;
+  state.wave = P.wave;
+  if (master) master.gain.value = P.volume;
+  updateStatus();
+}
+rebuildState();
+
+// ═══════════════════════════════════════════════════════════
+// VISUAL ENGINE
+// ═══════════════════════════════════════════════════════════
+
+const cv = document.getElementById('c');
+const cx = cv.getContext('2d');
+let W, H, CX, CY;
+
+function resize() {
+  W = cv.width = window.innerWidth;
+  H = cv.height = window.innerHeight;
+  CX = W / 2; CY = H / 2;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Color: harmonicity nh=0 → amber/gold, nh=1 → cool blue
+function hcolor(nh, alpha, hoff) {
+  hoff = hoff || 0;
+  const hue = Math.round(38 + nh * 188 + hoff);
+  const sat = 68 + Math.round(nh * 16);
+  const lit = 52 + Math.round(nh * 18);
+  return `hsla(${hue},${sat}%,${lit}%,${alpha.toFixed(3)})`;
+}
+
+function ringR() { return Math.min(W, H) * 0.30; }
+
+// Particles
+const particles = [];
+class Particle {
+  constructor(angle, nh, nr) {
+    this.nh = nh; this.nr = nr;
+    this.life = 0; this.maxLife = 2.0 + nr * 3.2;
+    const R = ringR();
+    this.x = CX + Math.cos(angle) * R;
+    this.y = CY + Math.sin(angle) * R;
+    // Drift toward center with gentle spiral
+    this.vx = -Math.cos(angle) * (0.5 + nr * 1.4);
+    this.vy = -Math.sin(angle) * (0.5 + nr * 1.4);
+    this.angle = angle;
+    this.size = 1.8 + nr * 6;
+    this.trail = [];
+    this.rotation = (Math.random() - 0.5) * 0.02;
+  }
+  tick(dt) {
+    this.life += dt;
+    this.trail.push({ x: this.x, y: this.y });
+    if (this.trail.length > 22) this.trail.shift();
+    const dx = CX - this.x, dy = CY - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    // Spiral: pull + perpendicular nudge
+    this.vx += (dx / dist) * 0.055 + (-dy / dist) * this.rotation * 0.4;
+    this.vy += (dy / dist) * 0.055 + (dx / dist) * this.rotation * 0.4;
+    this.vx *= 0.962; this.vy *= 0.962;
+    this.x += this.vx; this.y += this.vy;
+    return this.life < this.maxLife;
+  }
+  draw() {
+    const t = this.life / this.maxLife;
+    const a = Math.pow(Math.max(0, 1 - t), 1.1);
+    const sz = this.size * a;
+
+    // Glow halo
+    if (sz > 0.5) {
+      const gr = cx.createRadialGradient(this.x, this.y, 0, this.x, this.y, sz * 4);
+      gr.addColorStop(0, hcolor(this.nh, a * 0.45));
+      gr.addColorStop(1, 'transparent');
+      cx.beginPath();
+      cx.arc(this.x, this.y, sz * 4, 0, Math.PI * 2);
+      cx.fillStyle = gr; cx.fill();
+    }
+
+    // Trail
+    if (this.trail.length > 2) {
+      cx.beginPath();
+      cx.moveTo(this.trail[0].x, this.trail[0].y);
+      for (let i = 1; i < this.trail.length; i++)
+        cx.lineTo(this.trail[i].x, this.trail[i].y);
+      cx.strokeStyle = hcolor(this.nh, a * 0.22);
+      cx.lineWidth = sz * 0.55;
+      cx.lineCap = 'round';
+      cx.stroke();
+    }
+
+    // Core
+    cx.beginPath();
+    cx.arc(this.x, this.y, sz, 0, Math.PI * 2);
+    cx.fillStyle = hcolor(this.nh, a * 0.9);
+    cx.fill();
+  }
+}
+
+// Ripple rings
+const ripples = [];
+class Ripple {
+  constructor(x, y, nr, nh) {
+    this.x = x; this.y = y; this.nr = nr; this.nh = nh;
+    this.r = 0; this.life = 0; this.maxLife = 0.75 + nr * 0.55;
+    this.maxR = 8 + nr * 32;
+  }
+  tick(dt) { this.life += dt; this.r = (this.life / this.maxLife) * this.maxR; return this.life < this.maxLife; }
+  draw() {
+    const a = Math.pow(Math.max(0, 1 - this.life / this.maxLife), 1.5) * 0.7;
+    cx.beginPath();
+    cx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    cx.strokeStyle = hcolor(this.nh, a);
+    cx.lineWidth = 0.8;
+    cx.stroke();
+  }
+}
+
+// Harmonic web: lines connecting simultaneously active particles
+let webLines = [];
+let cPulse = 0;
+let last = 0;
+
+function frame(ts) {
+  requestAnimationFrame(frame);
+  const dt = Math.min((ts - last) / 1000, 0.05);
+  last = ts;
+
+  // Drain visual event queue at audio time
+  if (playing && AC) {
+    const now = AC.currentTime;
+    let i = 0;
+    while (i < vQueue.length) {
+      const ev = vQueue[i];
+      if (ev.t <= now + 0.03) {
+        const Q = state.indis.length;
+        const angle = -Math.PI / 2 + (ev.idx / Q) * Math.PI * 2;
+        const R = ringR();
+        const px = CX + Math.cos(angle) * R;
+        const py = CY + Math.sin(angle) * R;
+        if (particles.length < 280) particles.push(new Particle(angle, ev.nh, ev.nr));
+        ripples.push(new Ripple(px, py, ev.nr, ev.nh));
+        if (ev.nr > 0.72) cPulse = Math.max(cPulse, ev.nr);
+        vQueue.splice(i, 1);
+      } else i++;
+    }
+  }
+
+  cPulse = Math.max(0, cPulse - dt * 2.4);
+
+  // Tick
+  for (let i = particles.length - 1; i >= 0; i--)
+    if (!particles[i].tick(dt)) particles.splice(i, 1);
+  for (let i = ripples.length - 1; i >= 0; i--)
+    if (!ripples[i].tick(dt)) ripples.splice(i, 1);
+
+  // Ghost trail background
+  cx.fillStyle = 'rgba(5,5,15,0.15)';
+  cx.fillRect(0, 0, W, H);
+
+  drawField();
+  drawRing();
+  ripples.forEach(r => r.draw());
+  particles.forEach(p => p.draw());
+  drawCenter();
+}
+
+// Subtle harmonic web between young particles
+function drawField() {
+  const young = particles.filter(p => p.life < p.maxLife * 0.4 && p.nr > 0.4);
+  if (young.length < 2) return;
+  for (let i = 0; i < young.length; i++) {
+    for (let j = i + 1; j < young.length && j < i + 4; j++) {
+      const p1 = young[i], p2 = young[j];
+      const dx = p2.x - p1.x, dy = p2.y - p1.y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 200) {
+        const a = (1 - d / 200) * 0.06 * (1 - p1.life / p1.maxLife);
+        // Color blend: average harmonicity
+        const nh = (p1.nh + p2.nh) / 2;
+        cx.beginPath();
+        cx.moveTo(p1.x, p1.y);
+        cx.lineTo(p2.x, p2.y);
+        cx.strokeStyle = hcolor(nh, a);
+        cx.lineWidth = 0.5;
+        cx.stroke();
+      }
+    }
+  }
+}
+
+function drawRing() {
+  const Q = state.indis.length; if (!Q) return;
+  const R = ringR();
+
+  // Outer ring faint circle
+  cx.beginPath();
+  cx.arc(CX, CY, R, 0, Math.PI * 2);
+  cx.strokeStyle = 'rgba(50,60,120,0.1)';
+  cx.lineWidth = 0.5;
+  cx.stroke();
+
+  // Pulse nodes
+  for (let i = 0; i < Q; i++) {
+    const rank = state.indis[i];
+    const nr = Q > 1 ? rank / (Q - 1) : 1;
+    const angle = -Math.PI / 2 + (i / Q) * Math.PI * 2;
+    const x = CX + Math.cos(angle) * R;
+    const y = CY + Math.sin(angle) * R;
+    const size = 1.2 + nr * 4.5;
+    const a = 0.08 + nr * 0.48;
+
+    // Glow on high-rank pulses
+    if (nr > 0.6) {
+      const gr = cx.createRadialGradient(x, y, 0, x, y, size * 3);
+      gr.addColorStop(0, `rgba(${60+Math.round(nr*120)},${80+Math.round(nr*80)},255,${a * 0.4})`);
+      gr.addColorStop(1, 'transparent');
+      cx.beginPath(); cx.arc(x, y, size * 3, 0, Math.PI * 2);
+      cx.fillStyle = gr; cx.fill();
+    }
+
+    cx.beginPath();
+    cx.arc(x, y, size, 0, Math.PI * 2);
+    cx.fillStyle = `rgba(${55+Math.round(nr*120)},${75+Math.round(nr*80)},255,${a})`;
+    cx.fill();
+
+    // Downbeat marker
+    if (i === 0) {
+      cx.beginPath();
+      cx.arc(x, y, size + 2.5, 0, Math.PI * 2);
+      cx.strokeStyle = 'rgba(120,140,255,0.2)';
+      cx.lineWidth = 0.5;
+      cx.stroke();
+    }
+  }
+
+  // Moving position cursor
+  if (playing && state.indis.length > 0) {
+    const ai = ((pIdx - 1) % Q + Q) % Q;
+    const angle = -Math.PI / 2 + (ai / Q) * Math.PI * 2;
+    const mx = CX + Math.cos(angle) * (R - 16);
+    const my = CY + Math.sin(angle) * (R - 16);
+    cx.beginPath(); cx.arc(mx, my, 2.5, 0, Math.PI * 2);
+    cx.fillStyle = 'rgba(160,180,255,0.5)';
+    cx.fill();
+  }
+}
+
+function drawCenter() {
+  const r = 4 + cPulse * 20;
+  const a = 0.12 + cPulse * 0.6;
+
+  const gr = cx.createRadialGradient(CX, CY, 0, CX, CY, r * 5);
+  gr.addColorStop(0, `rgba(60,90,220,${a * 0.4})`);
+  gr.addColorStop(0.4, `rgba(40,60,180,${a * 0.15})`);
+  gr.addColorStop(1, 'transparent');
+  cx.beginPath(); cx.arc(CX, CY, r * 5, 0, Math.PI * 2);
+  cx.fillStyle = gr; cx.fill();
+
+  cx.beginPath(); cx.arc(CX, CY, r, 0, Math.PI * 2);
+  cx.fillStyle = `rgba(80,110,240,${a * 0.55})`;
+  cx.fill();
+
+  cx.beginPath(); cx.arc(CX, CY, 2, 0, Math.PI * 2);
+  cx.fillStyle = `rgba(160,190,255,${0.3 + cPulse * 0.6})`;
+  cx.fill();
+}
+
+// ═══════════════════════════════════════════════════════════
+// UI
+// ═══════════════════════════════════════════════════════════
+
+function parseStrat(s) {
+  return s.trim().split(/\s+/).map(Number)
+    .filter(n => Number.isFinite(n) && n >= 2 && Number.isInteger(n));
+}
+
+function updateStatus() {
+  const s = P.strat;
+  const Q = s.reduce((a, b) => a * b, 1);
+  document.getElementById('s-pulses').textContent =
+    `${Q} pulses  ·  [${s.join(' × ')}]`;
+}
+
+document.getElementById('strat').addEventListener('change', e => {
+  const s = parseStrat(e.target.value);
+  if (s.length && s.reduce((a,b)=>a*b,1) <= 64) {
+    P.strat = s; rebuildState();
+    if (playing) { stopEngine(); startEngine(); }
+  }
+});
+
+document.getElementById('metricity').addEventListener('input', e => {
+  P.metricity = +e.target.value;
+  document.getElementById('mv').textContent = P.metricity.toFixed(2);
+  state.metricity = P.metricity;
+});
+document.getElementById('tonality').addEventListener('input', e => {
+  P.tonality = +e.target.value;
+  document.getElementById('tv').textContent = P.tonality.toFixed(2);
+  state.tonality = P.tonality;
+});
+document.getElementById('bpm').addEventListener('input', e => {
+  P.bpm = +e.target.value;
+  document.getElementById('bv').textContent = P.bpm + ' bpm';
+  rebuildState();
+});
+document.getElementById('scale').addEventListener('change', e => {
+  P.scale = e.target.value;
+  state.notes = buildNotes(P.scale);
+});
+document.getElementById('wave').addEventListener('change', e => {
+  P.wave = e.target.value; state.wave = P.wave;
+});
+document.getElementById('volume').addEventListener('input', e => {
+  P.volume = +e.target.value;
+  document.getElementById('vv').textContent = P.volume.toFixed(2);
+  if (master) master.gain.value = P.volume;
+});
+
+const btn = document.getElementById('btn');
+btn.addEventListener('click', () => {
+  if (playing) {
+    stopEngine();
+    btn.textContent = '▶  start'; btn.classList.remove('on');
+  } else {
+    startEngine();
+    btn.textContent = '■  stop'; btn.classList.add('on');
+  }
+});
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
