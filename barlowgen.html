@@ -130,6 +130,27 @@ select optgroup { background: #080818; color: #303060;
 }
 .sec-hdr.open .sec-icon { transform: rotate(90deg); }
 .sec-hdr .sec-title { flex: 1; }
+.sec-hdr .sec-help {
+  font-size: 10px; color: #303060; cursor: help;
+  margin-left: 8px; width: 14px; height: 14px;
+  border: 0.5px solid rgba(80,110,200,0.2);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.sec-hdr .sec-help:hover { color: var(--accent); border-color: var(--accent); }
+.sec-tooltip {
+  position: absolute; right: 290px; top: 0;
+  width: 220px; background: rgba(8,8,24,0.98);
+  border: 0.5px solid rgba(80,110,200,0.3);
+  border-radius: 8px; padding: 12px;
+  font-size: 10px; line-height: 1.5; color: #8090c0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  pointer-events: none; opacity: 0; transform: translateX(10px);
+  transition: all 0.2s; z-index: 1000;
+  text-transform: none; letter-spacing: 0.02em;
+}
+.sec-help:hover + .sec-tooltip { opacity: 1; transform: translateX(0); }
+
 .sec-hdr .sec-detach {
   font-size: 9px; color: #252550; cursor: pointer;
   padding: 1px 4px; margin-left: 4px;
@@ -170,20 +191,6 @@ select optgroup { background: #080818; color: #303060;
 .detached-close:hover { color: var(--accent); }
 .detached-body { padding: 10px 14px 14px; }
 
-.tip { position: relative; }
-.tip::after {
-  content: attr(data-tip);
-  position: absolute; right: 0; top: -28px;
-  background: rgba(8,8,24,0.96);
-  border: 0.5px solid rgba(80,100,200,0.25);
-  border-radius: 4px; padding: 3px 8px;
-  font-size: 9px; color: #6070a0;
-  letter-spacing: 0.04em; white-space: nowrap;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.15s; z-index: 100;
-}
-.tip:hover::after { opacity: 1; }
-
 .pslot {
   width: 22px; height: 20px;
   background: rgba(255,255,255,0.02);
@@ -205,61 +212,37 @@ select optgroup { background: #080818; color: #303060;
 <canvas id="c"></canvas>
 
 <div id="status-bar">
-  <span id="sb-title">barlowgen</span>
-  <div id="sb-info">
+  <button id="play-btn">&#9654; start</button>
+  <button id="collapse-all" title="Collapse all sections"
+    style="padding:3px 8px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:10px;cursor:pointer"
+    onclick="toggleAllSections()">&#9776;</button>
+  <span id="sb-title" style="margin-left:8px">barlowgen</span>
+  <div id="sb-info" style="margin-left:auto; display:flex; gap:16px;">
     <span id="sb-pulses">6 pulses</span>
     <span id="sb-strat">[3&#215;2]</span>
     <span id="sb-bpm">72 bpm</span>
   </div>
-  <div id="sb-sections" style="display:flex;gap:4px;margin-left:8px">
-    <button onclick="jumpToSec('rhythm')" 
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Rhythm">RHY</button>
-    <button onclick="jumpToSec('harmony')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Harmony">HAR</button>
-    <button onclick="jumpToSec('voices')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Voices">VOI</button>
-    <button onclick="jumpToSec('midi')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="MIDI">MID</button>
-    <button onclick="jumpToSec('timbre')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Timbre">TIM</button>
-  </div>
-  <div id="sb-sections" style="display:flex;gap:4px;margin-left:8px">
-    <button onclick="jumpToSec('rhythm')" 
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Rhythm">RHY</button>
-    <button onclick="jumpToSec('harmony')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Harmony">HAR</button>
-    <button onclick="jumpToSec('voices')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Voices">VOI</button>
-    <button onclick="jumpToSec('midi')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="MIDI">MID</button>
-    <button onclick="jumpToSec('timbre')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Timbre">TIM</button>
-  </div>
-  <button id="play-btn">&#9654; start</button>
 </div>
 
 <div id="panel">
-  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>RHYTHM</div>
-  <div class="sec-body">
-    <div class="row tip" data-tip="metric stratification e.g. 3 2">
+  <!-- RHYTHM -->
+  <div class="sec-hdr open" onclick="toggleSec(this)">
+    <span class="sec-icon">&#9658;</span>
+    <span class="sec-title">Rhythm</span>
+    <span class="sec-help">?</span>
+    <div class="sec-tooltip">Controls the metric structure and pulse behaviour of Voice 1. Metricity gates probability by indispensability rank, while density scales overall activity.</div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('rhythm')">&#8599;</span>
+  </div>
+  <div id="sec-rhythm" class="sec-body open">
+    <div class="row">
       <div class="lbl"><span>stratification</span></div>
       <input type="text" id="strat" value="3 2" spellcheck="false">
     </div>
-    <div class="row tip" data-tip="pulse fire probability by rank">
+    <div class="row">
       <div class="lbl"><span>metricity</span><span id="mv">0.65</span></div>
       <input type="range" id="metricity" min="0" max="1" step="0.01" value="0.65">
     </div>
-    <div class="row tip" data-tip="fraction of pulses that fire">
+    <div class="row">
       <div class="lbl"><span>density</span><span id="dv">1.00</span></div>
       <input type="range" id="density" min="0" max="1" step="0.01" value="1">
     </div>
@@ -269,69 +252,83 @@ select optgroup { background: #080818; color: #303060;
     </div>
   </div>
 
-  <div class="sec-hdr" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>HARMONY</div>
-  <div class="sec-body closed">
-    <div class="row tip" data-tip="just intonation pitch set">
+  <!-- HARMONY -->
+  <div class="sec-hdr open" onclick="toggleSec(this)">
+    <span class="sec-icon">&#9658;</span>
+    <span class="sec-title">Harmony</span>
+    <span class="sec-help">?</span>
+    <div class="sec-tooltip">Controls the pitch field for Voice 1. Scales can be directional (ascending/descending). Tonality weights pitches by their Barlow harmonicity H(P:Q).</div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('harmony')">&#8599;</span>
+  </div>
+  <div id="sec-harmony" class="sec-body open">
+    <div class="row">
       <div class="lbl"><span>scale</span></div>
       <select id="scale">
-      <optgroup label="— western">
-        <option value="major">major (just intonation)</option>
-        <option value="minor">minor (just intonation)</option>
-        <option value="pentatonic">pentatonic</option>
-        <option value="pythagorean">pythagorean</option>
-        <option value="chromatic">chromatic (just)</option>
-        <option value="wholetone">whole tone</option>
-      </optgroup>
-      <optgroup label="— modes">
-        <option value="dorian">dorian</option>
-        <option value="phrygian">phrygian</option>
-        <option value="lydian">lydian</option>
-        <option value="mixolydian">mixolydian</option>
-        <option value="phrygianDom">phrygian dominant</option>
-        <option value="lydianDom">lydian dominant</option>
-        <option value="doubleHarmonic">double harmonic</option>
-        <option value="hungarianMinor">hungarian minor</option>
-        <option value="octatonic">octatonic</option>
-      </optgroup>
-      <optgroup label="— directional ↑↓">
-        <option value="melodicMinor">melodic minor ↑↓</option>
-        <option value="kafi">kafi ↑↓</option>
-        <option value="todi">todi ↑↓</option>
-        <option value="marwa">marwa ↑↓</option>
-        <option value="bhimpalasi">bhimpalasi ↑↓</option>
-        <option value="yaman">yaman</option>
-        <option value="bhairavi">bhairavi</option>
-      </optgroup>
-      <optgroup label="— japanese">
-        <option value="hirajoshi">hirajoshi</option>
-        <option value="insen">insen</option>
-      </optgroup>
-    </select>
+        <optgroup label="— western">
+          <option value="major">major (just intonation)</option>
+          <option value="minor">minor (just intonation)</option>
+          <option value="pentatonic">pentatonic</option>
+          <option value="pythagorean">pythagorean</option>
+          <option value="chromatic">chromatic (just)</option>
+          <option value="wholetone">whole tone</option>
+        </optgroup>
+        <optgroup label="— modes">
+          <option value="dorian">dorian</option>
+          <option value="phrygian">phrygian</option>
+          <option value="lydian">lydian</option>
+          <option value="mixolydian">mixolydian</option>
+          <option value="phrygianDom">phrygian dominant</option>
+          <option value="lydianDom">lydian dominant</option>
+          <option value="doubleHarmonic">double harmonic</option>
+          <option value="hungarianMinor">hungarian minor</option>
+          <option value="octatonic">octatonic</option>
+        </optgroup>
+        <optgroup label="— directional ↑↓">
+          <option value="melodicMinor">melodic minor ↑↓</option>
+          <option value="kafi">kafi ↑↓</option>
+          <option value="todi">todi ↑↓</option>
+          <option value="marwa">marwa ↑↓</option>
+          <option value="bhimpalasi">bhimpalasi ↑↓</option>
+          <option value="yaman">yaman</option>
+          <option value="bhairavi">bhairavi</option>
+        </optgroup>
+        <optgroup label="— japanese">
+          <option value="hirajoshi">hirajoshi</option>
+          <option value="insen">insen</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>tonic</span></div>
+      <select id="tonic">
+        <option>C</option><option>C#</option><option>D</option><option>D#</option>
+        <option>E</option><option>F</option><option>F#</option><option>G</option>
+        <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>octave</span><span id="ov">3</span></div>
+      <input type="range" id="octave" min="1" max="5" step="1" value="3">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>ambitus</span><span id="av">2 oct</span></div>
+      <input type="range" id="ambitus" min="1" max="4" step="1" value="2">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>tonality</span><span id="tv">0.70</span></div>
+      <input type="range" id="tonality" min="0" max="1" step="0.01" value="0.70">
+    </div>
   </div>
-  <div class="row tip" data-tip="root pitch">
-    <div class="lbl"><span>tonic</span></div>
-    <select id="tonic">
-      <option>C</option><option>C#</option><option>D</option><option>D#</option>
-      <option>E</option><option>F</option><option>F#</option><option>G</option>
-      <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
-    </select>
-  </div>
-  <div class="row tip" data-tip="root octave 1=low 5=high">
-    <div class="lbl"><span>octave</span><span id="ov">3</span></div>
-    <input type="range" id="octave" min="1" max="5" step="1" value="3">
-  </div>
-  <div class="row tip" data-tip="range in octaves above tonic">
-    <div class="lbl"><span>ambitus</span><span id="av">2 oct</span></div>
-    <input type="range" id="ambitus" min="1" max="4" step="1" value="2">
-  </div>
-  <div class="row tip" data-tip="harmonic pitch weighting">
-    <div class="lbl"><span>tonality</span><span id="tv">0.70</span></div>
-    <input type="range" id="tonality" min="0" max="1" step="0.01" value="0.70">
-  </div>
-</div>
 
-  <div class="sec-hdr" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>VOICES</div>
-  <div class="sec-body closed">
+  <!-- VOICES -->
+  <div class="sec-hdr" onclick="toggleSec(this)">
+    <span class="sec-icon">&#9658;</span>
+    <span class="sec-title">Voices</span>
+    <span class="sec-help">?</span>
+    <div class="sec-tooltip">Independent generative streams V2 and V3. Each follows the same algorithmic logic but with independent settings. Enable to layer counterpoint.</div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('voices')">&#8599;</span>
+  </div>
+  <div id="sec-voices" class="sec-body">
     <div class="row">
       <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:#5060a0;cursor:pointer">
         <input type="checkbox" id="v2-en"> voice 2
@@ -371,8 +368,50 @@ select optgroup { background: #080818; color: #303060;
     </div>
   </div>
 
-  <div class="sec-hdr" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>MIDI</div>
-  <div class="sec-body closed">
+  <!-- TIMBRE -->
+  <div class="sec-hdr" onclick="toggleSec(this)">
+    <span class="sec-icon">&#9658;</span>
+    <span class="sec-title">Timbre</span>
+    <span class="sec-help">?</span>
+    <div class="sec-tooltip">Sound design for Voice 1. Gate controls note duration relative to pulse, jitter adds micro-timing randomness, and bass vel adds a sub-octave.</div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('timbre')">&#8599;</span>
+  </div>
+  <div id="sec-timbre" class="sec-body">
+    <div class="row">
+      <div class="lbl"><span>wave</span></div>
+      <select id="wave">
+        <option value="sine">sine</option>
+        <option value="triangle" selected>triangle</option>
+        <option value="sawtooth">sawtooth</option>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>volume</span><span id="vv">0.50</span></div>
+      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>gate</span><span id="gv">0.80</span></div>
+      <input type="range" id="gate" min="0.05" max="1" step="0.01" value="0.8">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>jitter</span><span id="jv">0.00</span></div>
+      <input type="range" id="jitter" min="0" max="1" step="0.01" value="0">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>bass vel</span><span id="bsv">0.50</span></div>
+      <input type="range" id="bassVel" min="0" max="1" step="0.01" value="0.5">
+    </div>
+  </div>
+
+  <!-- MIDI -->
+  <div class="sec-hdr" onclick="toggleSec(this)">
+    <span class="sec-icon">&#9658;</span>
+    <span class="sec-title">MIDI</span>
+    <span class="sec-help">?</span>
+    <div class="sec-tooltip">External device routing. Connect Barlowgen to your DAW or synths. Maintains sample-accurate synchronization with the WebAudio clock.</div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('midi')">&#8599;</span>
+  </div>
+  <div id="sec-midi" class="sec-body">
     <div class="row">
       <div class="lbl"><span>device</span></div>
       <select id="midi-dev"><option value="">-- none --</option></select>
@@ -380,53 +419,89 @@ select optgroup { background: #080818; color: #303060;
     <div class="row">
       <div class="lbl"><span>channel</span></div>
       <select id="midi-chan">
-      <option value="1" selected>1</option><option value="2">2</option>
-      <option value="3">3</option><option value="4">4</option>
-      <option value="5">5</option><option value="6">6</option>
-      <option value="7">7</option><option value="8">8</option>
-      <option value="9">9</option><option value="10">10</option>
-      <option value="11">11</option><option value="12">12</option>
-      <option value="13">13</option><option value="14">14</option>
-      <option value="15">15</option><option value="16">16</option>
-    </select>
+        <option value="1" selected>1</option><option value="2">2</option>
+        <option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option><option value="10">10</option>
+        <option value="11">11</option><option value="12">12</option>
+        <option value="13">13</option><option value="14">14</option>
+        <option value="15">15</option><option value="16">16</option>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>vel min</span><span id="vlmin">40</span></div>
+      <input type="range" id="vel-min" min="1" max="100" step="1" value="40">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>vel max</span><span id="vlmax">110</span></div>
+      <input type="range" id="vel-max" min="40" max="127" step="1" value="110">
+    </div>
   </div>
-  <div class="row">
-    <div class="lbl"><span>vel min</span><span id="vlmin">40</span></div>
-    <input type="range" id="vel-min" min="1" max="100" step="1" value="40">
-  </div>
-  <div class="row">
-    <div class="lbl"><span>vel max</span><span id="vlmax">110</span></div>
-    <input type="range" id="vel-max" min="40" max="127" step="1" value="110">
-  </div>
-</div>
 
-  <div class="sec-hdr" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>TIMBRE</div>
-  <div class="sec-body closed">
-    <div class="row tip" data-tip="oscillator waveform">
-      <div class="lbl"><span>wave</span></div>
-      <select id="wave">
-      <option value="sine">sine</option>
-      <option value="triangle" selected>triangle</option>
-      <option value="sawtooth">sawtooth</option>
-    </select>
+  <!-- TUNING -->
+  <div class="sec-hdr" onclick="toggleSec(this)">
+    <span class="sec-icon">&#9658;</span>
+    <span class="sec-title">Tuning</span>
+    <span class="sec-help">?</span>
+    <div class="sec-tooltip">Generate just-intonation scales from cents. Bandwidth sigma controls harmonic proximity vs. precision. Drag .scl files to load.</div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('tuning')">&#8599;</span>
   </div>
-  <div class="row">
-    <div class="lbl"><span>volume</span><span id="vv">0.50</span></div>
-    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+  <div id="sec-tuning" class="sec-body">
+    <div class="row">
+      <div class="lbl"><span>cents (space separated)</span></div>
+      <textarea id="tune-cents" style="width:100%;height:60px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(80,100,200,0.18);border-radius:5px;color:#8090c0;font-size:10px;font-family:var(--mono);padding:5px;outline:none;resize:none" spellcheck="false">0 200 400 500 700 900 1100</textarea>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>sigma (bandwidth)</span><span id="sv">15¢</span></div>
+      <input type="range" id="tune-sigma" min="1" max="50" step="1" value="15">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>scale name</span></div>
+      <input type="text" id="tune-name" value="custom_ji" spellcheck="false">
+    </div>
+    <button id="tune-apply" style="width:100%;padding:6px;background:rgba(232,200,64,0.1);border:0.5px solid rgba(232,200,64,0.3);border-radius:5px;color:var(--accent);font-family:var(--mono);font-size:10px;cursor:pointer;margin-top:8px">▶ APPLY TUNING</button>
   </div>
-  <div class="row tip" data-tip="note duration / pulse interval">
-    <div class="lbl"><span>gate</span><span id="gv">0.80</span></div>
-    <input type="range" id="gate" min="0.05" max="1" step="0.01" value="0.8">
+
+  <!-- SCORE -->
+  <div class="sec-hdr" onclick="toggleSec(this)">
+    <span class="sec-icon">&#9658;</span>
+    <span class="sec-title">Score</span>
+    <span class="sec-help">?</span>
+    <div class="sec-tooltip">Parameter automation using time:value breakpoints. Linear interpolation between points. Time in seconds from Play.</div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('score')">&#8599;</span>
   </div>
-  <div class="row tip" data-tip="random timing offset">
-    <div class="lbl"><span>jitter</span><span id="jv">0.00</span></div>
-    <input type="range" id="jitter" min="0" max="1" step="0.01" value="0">
+  <div id="sec-score" class="sec-body">
+    <div class="row">
+      <div class="lbl"><span>metricity</span></div>
+      <input type="text" id="sc-metricity" placeholder="0:0.65 60:0.2" spellcheck="false">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>tonality</span></div>
+      <input type="text" id="sc-tonality" placeholder="0:0.7 60:0.3" spellcheck="false">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>density</span></div>
+      <input type="text" id="sc-density" placeholder="0:1 60:0.5" spellcheck="false">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>bpm</span></div>
+      <input type="text" id="sc-bpm" placeholder="0:72 60:120" spellcheck="false">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>tonic shift</span></div>
+      <input type="text" id="sc-tonicShift" placeholder="0:0 60:7" spellcheck="false">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>morph A&harr;B</span></div>
+      <input type="text" id="sc-morph" placeholder="0:0 120:1" spellcheck="false">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button id="sc-run" style="flex:1;padding:6px;background:rgba(50,200,100,0.1);border:0.5px solid rgba(50,200,100,0.3);border-radius:5px;color:#60c080;font-family:var(--mono);font-size:10px;cursor:pointer">▶ RUN</button>
+      <button id="sc-stop" style="flex:0.4;padding:6px;background:rgba(200,50,50,0.1);border:0.5px solid rgba(200,50,50,0.3);border-radius:5px;color:#c06060;font-family:var(--mono);font-size:10px;cursor:pointer">■</button>
+    </div>
+    <div id="sc-time" style="font-size:9px;color:#303060;margin-top:8px;text-align:center">t = 0.0s</div>
   </div>
-  <div class="row tip" data-tip="bass shadow voice amplitude">
-    <div class="lbl"><span>bass vel</span><span id="bsv">0.50</span></div>
-    <input type="range" id="bassVel" min="0" max="1" step="0.01" value="0.5">
-  </div>
-</div>
 </div>
 
 <div id="state-bar">
@@ -823,6 +898,7 @@ function scheduler() {
       ve.pTime += ve.state.pulseDur;
     }
   }
+  tickScore();
 }
 
 function startEngine() {
@@ -1047,9 +1123,74 @@ function freqToMidi(freq) {
 function toggleSec(hdr) {
   hdr.classList.toggle('open');
   const body = hdr.nextElementSibling;
-  if (body && body.classList.contains('sec-body')) {
-    body.classList.toggle('closed');
-  }
+  if (body) body.classList.toggle('open');
+}
+
+function toggleAllSections() {
+  const hdrs = document.querySelectorAll('.sec-hdr');
+  const bodies = document.querySelectorAll('.sec-body');
+  const anyOpen = Array.from(hdrs).some(h => h.classList.contains('open'));
+  hdrs.forEach(h => h.classList.toggle('open', !anyOpen));
+  bodies.forEach(b => b.classList.toggle('open', !anyOpen));
+}
+
+function detachSec(id) {
+  const body = document.getElementById('sec-' + id);
+  if (!body) return;
+  const hdr = body.previousElementSibling;
+  const title = hdr.querySelector('.sec-title').textContent;
+  
+  const dp = document.createElement('div');
+  dp.className = 'detached-panel';
+  dp.id = 'detached-' + id;
+  dp.style.left = (window.innerWidth - 300) + 'px';
+  dp.style.top = '100px';
+  
+  const dhdr = document.createElement('div');
+  dhdr.className = 'detached-hdr';
+  dhdr.onmousedown = (e) => startDrag(e, dp);
+  dhdr.innerHTML = `<span>${title}</span><span class="detached-close" onclick="reattachSec('${id}')">&times;</span>`;
+  
+  const dbody = document.createElement('div');
+  dbody.className = 'detached-body';
+  while (body.firstChild) dbody.appendChild(body.firstChild);
+  
+  dp.appendChild(dhdr);
+  dp.appendChild(dbody);
+  document.body.appendChild(dp);
+  
+  hdr.style.display = 'none';
+  body.style.display = 'none';
+}
+
+function reattachSec(id) {
+  const dp = document.getElementById('detached-' + id);
+  const body = document.getElementById('sec-' + id);
+  const hdr = body.previousElementSibling;
+  const dbody = dp.querySelector('.detached-body');
+  while (dbody.firstChild) body.appendChild(dbody.firstChild);
+  document.body.removeChild(dp);
+  hdr.style.display = 'flex';
+  body.style.display = '';
+}
+
+let dragObj = null, dragOffX = 0, dragOffY = 0;
+function startDrag(e, el) {
+  dragObj = el;
+  dragOffX = e.clientX - el.offsetLeft;
+  dragOffY = e.clientY - el.offsetTop;
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', stopDrag);
+}
+function onDrag(e) {
+  if (!dragObj) return;
+  dragObj.style.left = (e.clientX - dragOffX) + 'px';
+  dragObj.style.top = (e.clientY - dragOffY) + 'px';
+}
+function stopDrag() {
+  dragObj = null;
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
 }
 
 function jumpToSec(name) {
@@ -1061,6 +1202,58 @@ function jumpToSec(name) {
       return;
     }
   }
+}
+
+const scoreAuto = {
+  running: false,
+  startTime: 0,
+  params: {
+    metricity:[], tonality:[], density:[],
+    bpm:[], tonicShift:[], morph:[]
+  }
+};
+
+function parseBreakpoints(str) {
+  if (!str || !str.trim()) return [];
+  return str.trim().split(/[\s,]+/)
+    .map(s => { const [t,v] = s.split(':').map(Number);
+      return isFinite(t) && isFinite(v) ? [t,v] : null; })
+    .filter(Boolean).sort((a,b) => a[0]-b[0]);
+}
+
+function scoreInterp(bps, t) {
+  if (!bps.length) return null;
+  if (t <= bps[0][0]) return bps[0][1];
+  if (t >= bps[bps.length-1][0]) return bps[bps.length-1][1];
+  for (let i = 1; i < bps.length; i++) {
+    if (t <= bps[i][0]) {
+      const f = (t - bps[i-1][0]) / (bps[i][0] - bps[i-1][0]);
+      return bps[i-1][1] + (bps[i][1] - bps[i-1][1]) * f;
+    }
+  }
+  return bps[bps.length-1][1];
+}
+
+function tickScore() {
+  if (!scoreAuto.running || !AC) return;
+  const t = AC.currentTime - scoreAuto.startTime;
+  const el = document.getElementById('sc-time');
+  if (el) el.textContent = 't = ' + t.toFixed(1) + 's';
+  const ap = (k, setter) => {
+    const v = scoreInterp(scoreAuto.params[k], t);
+    if (v !== null) setter(v);
+  };
+  ap('metricity', v => { P.metricity = v; state.metricity = v; });
+  ap('tonality',  v => { P.tonality  = v; state.tonality  = v; });
+  ap('density',   v => { P.density   = v; state.density   = v; });
+  ap('bpm', v => {
+    P.bpm = v;
+    const iQ = P.strat.slice(1).reduce((a,b)=>a*b,1)||1;
+    state.pulseDur = 60 / (v * iQ);
+    for (const ve of voiceExts) if (ve.params.enabled) rebuildVoiceState(ve);
+  });
+  ap('tonicShift', v => { P.tonicShift = v; state.tonicMult = Math.pow(2, v/12); });
+  ap('morph', v => { if (morphBIdx >= 0) applyMorph(v); });
 }
 
 function rebuildState() {
@@ -1561,6 +1754,29 @@ document.getElementById('vel-min').addEventListener('input', e => {
 document.getElementById('vel-max').addEventListener('input', e => {
   P.velocityMax = +e.target.value;
   document.getElementById('vlmax').textContent = e.target.value;
+});
+
+document.getElementById('sc-run').addEventListener('click', () => {
+  if (scoreAuto.running) {
+    scoreAuto.running = false;
+    document.getElementById('sc-run').textContent = '▶ run';
+    document.getElementById('sc-run').classList.remove('on');
+  } else {
+    ['metricity','tonality','density','bpm','tonicShift','morph'].forEach(k => {
+      const el = document.getElementById('sc-' + k);
+      scoreAuto.params[k] = el ? parseBreakpoints(el.value) : [];
+    });
+    scoreAuto.startTime = AC ? AC.currentTime : 0;
+    scoreAuto.running = true;
+    document.getElementById('sc-run').textContent = '⏸ pause';
+    document.getElementById('sc-run').classList.add('on');
+  }
+});
+document.getElementById('sc-stop').addEventListener('click', () => {
+  scoreAuto.running = false;
+  document.getElementById('sc-run').textContent = '▶ run';
+  document.getElementById('sc-run').classList.remove('on');
+  document.getElementById('sc-time').textContent = 't = 0s';
 });
 
 document.getElementById('p-add').addEventListener('click', () => {
