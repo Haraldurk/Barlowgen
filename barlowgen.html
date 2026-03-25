@@ -216,11 +216,12 @@ select optgroup { background: #080818; color: #303060;
   <button id="collapse-all" title="Collapse all sections"
     style="padding:3px 8px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:10px;cursor:pointer"
     onclick="toggleAllSections()">&#9776;</button>
-  <span id="sb-title" style="margin-left:8px">barlowgen</span>
+  <span id="sb-title" style="margin-left:8px" title="Barlowgen v1.2 · after Clarence Barlow · AUTOBUSK 1986">barlowgen</span>
   <div id="sb-info" style="margin-left:auto; display:flex; gap:16px;">
     <span id="sb-pulses">6 pulses</span>
     <span id="sb-strat">[3&#215;2]</span>
     <span id="sb-bpm">72 bpm</span>
+    <span style="color:#1a1a38;font-size:8px">&nbsp;·&nbsp;R=rnd · V=prob · Space=play</span>
   </div>
 </div>
 
@@ -251,8 +252,8 @@ select optgroup { background: #080818; color: #303060;
       <input type="range" id="bpm" min="30" max="220" step="1" value="72">
     </div>
     <div class="row">
-      <div class="lbl"><span>rotation</span><span id="lv-rotation">0.00</span></div>
-      <input type="range" id="sl-rotation" min="0" max="1" step="0.01" value="0">
+      <div class="lbl"><span>rotation</span><span id="rv">0.00</span></div>
+      <input type="range" id="rotation" min="0" max="1" step="0.01" value="0">
     </div>
   </div>
 
@@ -323,12 +324,12 @@ select optgroup { background: #080818; color: #303060;
       <input type="range" id="tonality" min="0" max="1" step="0.01" value="0.70">
     </div>
     <div class="row">
-      <div class="lbl"><span>tonic shift</span><span id="lv-tonicShift">0.0</span></div>
-      <input type="range" id="sl-tonicShift" min="-12" max="12" step="0.1" value="0">
+      <div class="lbl"><span>tonic shift</span><span id="tsv">0.0</span></div>
+      <input type="range" id="tonicShift" min="-12" max="12" step="0.1" value="0">
     </div>
     <div class="row">
-      <div class="lbl"><span>synnefism</span><span id="lv-synnefism">0.00</span></div>
-      <input type="range" id="sl-synnefism" min="0" max="1" step="0.01" value="0">
+      <div class="lbl"><span>synnefism</span><span id="syv">0.00</span></div>
+      <input type="range" id="synnefism" min="0" max="1" step="0.01" value="0">
     </div>
   </div>
 
@@ -1055,12 +1056,12 @@ function syncUI() {
   document.getElementById('jv').textContent = P.jitter.toFixed(2);
   document.getElementById('bassVel').value = P.bassVel;
   document.getElementById('bsv').textContent = P.bassVel.toFixed(2);
-  document.getElementById('sl-tonicShift').value = P.tonicShift || 0;
-  document.getElementById('lv-tonicShift').textContent = (P.tonicShift||0).toFixed(1);
-  document.getElementById('sl-rotation').value = P.rotation || 0;
-  document.getElementById('lv-rotation').textContent = (P.rotation||0).toFixed(2);
-  document.getElementById('sl-synnefism').value = P.synnefism || 0;
-  document.getElementById('lv-synnefism').textContent = (P.synnefism||0).toFixed(2);
+  const ts = document.getElementById('tonicShift');
+  if (ts) { ts.value = P.tonicShift||0; const tsv=document.getElementById('tsv'); if(tsv) tsv.textContent=(P.tonicShift||0).toFixed(1); }
+  const sy = document.getElementById('synnefism');
+  if (sy) { sy.value = P.synnefism||0; const syv=document.getElementById('syv'); if(syv) syv.textContent=(P.synnefism||0).toFixed(2); }
+  const ro = document.getElementById('rotation');
+  if (ro) { ro.value = P.rotation||0; const rv=document.getElementById('rv'); if(rv) rv.textContent=(P.rotation||0).toFixed(2); }
 }
 
 function savePreset(idx) {
@@ -1318,7 +1319,7 @@ let W, H, CX, CY;
 function resize() {
   W = cv.width = window.innerWidth;
   H = cv.height = window.innerHeight;
-  CX = (W - 280) / 2; CY = H / 2;
+  CX = W / 2; CY = H / 2;
 }
 window.addEventListener('resize', resize);
 resize();
@@ -1828,19 +1829,19 @@ document.getElementById('sc-stop').addEventListener('click', () => {
   document.getElementById('sc-time').textContent = 't = 0s';
 });
 
-  document.getElementById('sl-tonicShift').addEventListener('input', e => {
+  document.getElementById('tonicShift').addEventListener('input', e => {
     P.tonicShift = +e.target.value;
     state.tonicMult = Math.pow(2, P.tonicShift / 12);
-    document.getElementById('lv-tonicShift').textContent = P.tonicShift.toFixed(1);
+    document.getElementById('tsv').textContent = P.tonicShift.toFixed(1);
   });
-  document.getElementById('sl-rotation').addEventListener('input', e => {
+  document.getElementById('rotation').addEventListener('input', e => {
     P.rotation = +e.target.value;
-    document.getElementById('lv-rotation').textContent = P.rotation.toFixed(2);
+    document.getElementById('rv').textContent = P.rotation.toFixed(2);
     rebuildState();
   });
-  document.getElementById('sl-synnefism').addEventListener('input', e => {
+  document.getElementById('synnefism').addEventListener('input', e => {
     P.synnefism = +e.target.value;
-    document.getElementById('lv-synnefism').textContent = P.synnefism.toFixed(2);
+    document.getElementById('syv').textContent = P.synnefism.toFixed(2);
   });
 
 document.getElementById('p-add').addEventListener('click', () => {
