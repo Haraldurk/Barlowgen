@@ -283,6 +283,7 @@ select optgroup { background: #080818; color: #303060;
     <div class="row"><div class="lbl"><span>tonic shift</span><span id="tsv">0.0</span></div><input type="range" id="tonicShift" min="-12" max="12" step="0.1" value="0"></div>
     <div class="row"><div class="lbl"><span>synnefism</span><span id="syv">0.00</span></div><input type="range" id="synnefism" min="0" max="1" step="0.01" value="0"></div>
     <div class="row"><div class="lbl"><span>rotation</span><span id="rv">0.00</span></div><input type="range" id="rotation" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>complexity</span><span id="complexity-v">1.00</span></div><input type="range" id="complexity" min="0" max="1" step="0.01" value="1.0"></div>
   </div>
 
   <!-- VOICES -->
@@ -366,6 +367,11 @@ select optgroup { background: #080818; color: #303060;
       <div class="lbl"><span>bass vel</span><span id="bsv">0.50</span></div>
       <input type="range" id="bassVel" min="0" max="1" step="0.01" value="0.5">
     </div>
+    <div class="row"><div class="lbl"><span>swing</span><span id="swing-v">0.00</span></div><input type="range" id="swing" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>rest cluster</span><span id="restCluster-v">0.00</span></div><input type="range" id="restCluster" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>echo prob</span><span id="echoProbability-v">0.00</span></div><input type="range" id="echoProbability" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>drift rate</span><span id="driftRate-v">0.00</span></div><input type="range" id="driftRate" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>drift depth</span><span id="driftDepth-v">0.50</span></div><input type="range" id="driftDepth" min="0" max="1" step="0.01" value="0.5"></div>
   </div>
 
   <!-- MIDI -->
@@ -1060,6 +1066,18 @@ function syncUI() {
   if (sy) { sy.value = P.synnefism||0; const syv=document.getElementById('syv'); if(syv) syv.textContent=(P.synnefism||0).toFixed(2); }
   const ro = document.getElementById('rotation');
   if (ro) { ro.value = P.rotation||0; const rv=document.getElementById('rv'); if(rv) rv.textContent=(P.rotation||0).toFixed(2); }
+  const cxEl = document.getElementById('complexity');
+  if (cxEl) { cxEl.value = P.complexity||1; const cxv=document.getElementById('complexity-v'); if(cxv) cxv.textContent=(P.complexity||1).toFixed(2); }
+  const swEl = document.getElementById('swing');
+  if (swEl) { swEl.value = P.swing||0; const swv=document.getElementById('swing-v'); if(swv) swv.textContent=(P.swing||0).toFixed(2); }
+  const rcEl = document.getElementById('restCluster');
+  if (rcEl) { rcEl.value = P.restCluster||0; const rcv=document.getElementById('restCluster-v'); if(rcv) rcv.textContent=(P.restCluster||0).toFixed(2); }
+  const epEl = document.getElementById('echoProbability');
+  if (epEl) { epEl.value = P.echoProbability||0; const epv=document.getElementById('echoProbability-v'); if(epv) epv.textContent=(P.echoProbability||0).toFixed(2); }
+  const drEl = document.getElementById('driftRate');
+  if (drEl) { drEl.value = P.driftRate||0; const drv=document.getElementById('driftRate-v'); if(drv) drv.textContent=(P.driftRate||0).toFixed(2); }
+  const ddEl = document.getElementById('driftDepth');
+  if (ddEl) { ddEl.value = P.driftDepth!==undefined?P.driftDepth:0.5; const ddv=document.getElementById('driftDepth-v'); if(ddv) ddv.textContent=(P.driftDepth!==undefined?P.driftDepth:0.5).toFixed(2); }
 }
 
 function savePreset(idx) {
@@ -1862,6 +1880,31 @@ if (scStopBtn) scStopBtn.addEventListener('click', () => {
   if (syEl) syEl.addEventListener('input', e => {
     P.synnefism = +e.target.value;
     document.getElementById('syv').textContent = (+e.target.value).toFixed(2);
+  });
+  document.getElementById('complexity')?.addEventListener('input', e => {
+    P.complexity = +e.target.value;
+    document.getElementById('complexity-v').textContent = P.complexity.toFixed(2);
+    state.complexity = P.complexity;
+  });
+  document.getElementById('swing')?.addEventListener('input', e => {
+    P.swing = +e.target.value;
+    document.getElementById('swing-v').textContent = P.swing.toFixed(2);
+  });
+  document.getElementById('restCluster')?.addEventListener('input', e => {
+    P.restCluster = +e.target.value;
+    document.getElementById('restCluster-v').textContent = P.restCluster.toFixed(2);
+  });
+  document.getElementById('echoProbability')?.addEventListener('input', e => {
+    P.echoProbability = +e.target.value;
+    document.getElementById('echoProbability-v').textContent = P.echoProbability.toFixed(2);
+  });
+  document.getElementById('driftRate')?.addEventListener('input', e => {
+    P.driftRate = +e.target.value;
+    document.getElementById('driftRate-v').textContent = P.driftRate.toFixed(2);
+  });
+  document.getElementById('driftDepth')?.addEventListener('input', e => {
+    P.driftDepth = +e.target.value;
+    document.getElementById('driftDepth-v').textContent = P.driftDepth.toFixed(2);
   });
 
 document.getElementById('p-add').addEventListener('click', () => {
