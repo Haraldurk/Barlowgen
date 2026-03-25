@@ -1387,6 +1387,26 @@ function applyMorph(t) {
   if (t > 0.5) DISCRETE.forEach(k => { if (bv1[k] !== undefined) P[k] = bv1[k]; });
   syncUI();
   rebuildState();
+  const VOICE_NUMERIC = [
+    'metricity','tonality','density','gate','gateMin','gateMax',
+    'octave','ambitus','velocityMin','velocityMax'
+  ];
+  const VOICE_DISCRETE = ['scale','tonic','wave','midiChan','enabled'];
+  [0, 1].forEach(vi => {
+    const vp = voiceExts[vi].params;
+    const va = a['v' + (vi + 2)];
+    const vb = b['v' + (vi + 2)];
+    if (!va || !vb) return;
+    VOICE_NUMERIC.forEach(k => {
+      if (k in va && k in vb) vp[k] = va[k] + (vb[k] - va[k]) * t;
+    });
+    if (t > 0.5) {
+      VOICE_DISCRETE.forEach(k => { if (k in vb) vp[k] = vb[k]; });
+      if (vb.strat) vp.strat = vb.strat;
+    }
+    rebuildVoiceState(voiceExts[vi]);
+  });
+  syncVoiceUI();
 }
 
 function startTimedMorph(durationSecs) {
