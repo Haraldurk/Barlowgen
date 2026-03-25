@@ -2802,6 +2802,8 @@ const tipEl = document.getElementById('tip');
 document.querySelectorAll('[data-tip]').forEach(el => {
   el.addEventListener('mouseenter', e => {
     tipEl.textContent = el.dataset.tip;
+    tipEl.style.left = Math.min(e.clientX + 14, window.innerWidth - 240) + 'px';
+    tipEl.style.top  = Math.min(e.clientY + 14, window.innerHeight - 80) + 'px';
     tipEl.style.opacity = '1';
   });
   el.addEventListener('mousemove', e => {
