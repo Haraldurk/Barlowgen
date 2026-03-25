@@ -206,7 +206,7 @@ select optgroup { background: #080818; color: #303060;
 </div>
 
 <div id="panel">
-  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>rhythm</div>
+  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>RHYTHM</div>
   <div class="sec-body">
     <div class="row tip" data-tip="metric stratification e.g. 3 2">
       <div class="lbl"><span>stratification</span></div>
@@ -226,8 +226,8 @@ select optgroup { background: #080818; color: #303060;
     </div>
   </div>
 
-  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>harmony</div>
-  <div class="sec-body">
+  <div class="sec-hdr" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>HARMONY</div>
+  <div class="sec-body closed">
     <div class="row tip" data-tip="just intonation pitch set">
       <div class="lbl"><span>scale</span></div>
       <select id="scale">
@@ -287,8 +287,8 @@ select optgroup { background: #080818; color: #303060;
   </div>
 </div>
 
-  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>voices</div>
-  <div class="sec-body">
+  <div class="sec-hdr" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>VOICES</div>
+  <div class="sec-body closed">
     <div class="row">
       <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:#5060a0;cursor:pointer">
         <input type="checkbox" id="v2-en"> voice 2
@@ -328,8 +328,8 @@ select optgroup { background: #080818; color: #303060;
     </div>
   </div>
 
-  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>midi out</div>
-  <div class="sec-body">
+  <div class="sec-hdr" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>MIDI</div>
+  <div class="sec-body closed">
     <div class="row">
       <div class="lbl"><span>device</span></div>
       <select id="midi-dev"><option value="">-- none --</option></select>
@@ -357,8 +357,8 @@ select optgroup { background: #080818; color: #303060;
   </div>
 </div>
 
-  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>timbre</div>
-  <div class="sec-body">
+  <div class="sec-hdr" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>TIMBRE</div>
+  <div class="sec-body closed">
     <div class="row tip" data-tip="oscillator waveform">
       <div class="lbl"><span>wave</span></div>
       <select id="wave">
