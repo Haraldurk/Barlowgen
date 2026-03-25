@@ -687,6 +687,20 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
   </div>
 </div>
 
+<!-- SESSION -->
+<div class="sec-hdr" id="hdr-session" onclick="toggleSec(this)">
+  <span class="sec-icon">&#9656;</span>
+  <span class="sec-title">Session</span>
+</div>
+<div id="body-session" class="sec-body">
+  <div style="display:flex;gap:6px;margin-bottom:6px">
+    <button id="btn-save-session" style="flex:1;padding:6px;background:rgba(40,80,160,0.12);border:0.5px solid rgba(80,120,220,0.3);border-radius:5px;color:rgba(140,170,240,0.9);font-family:var(--mono);font-size:10px;cursor:pointer">&#11015; Save JSON</button>
+    <button id="btn-load-session" style="flex:1;padding:6px;background:rgba(40,80,160,0.12);border:0.5px solid rgba(80,120,220,0.3);border-radius:5px;color:rgba(140,170,240,0.9);font-family:var(--mono);font-size:10px;cursor:pointer">&#11014; Load JSON</button>
+  </div>
+  <input type="file" id="input-load-session" accept=".json" style="display:none">
+  <div id="session-status" style="font-size:10px;color:#888;min-height:14px;text-align:center"></div>
+</div>
+
 <div id="state-bar">
   <button id="p-add">+</button>
   <div id="pslots-wrap" style="display:flex;gap:3px;flex-wrap:wrap" data-tip="Preset slots — click + to save current state. Left-click to load (A). Right-click to set as morph target (B). Stores V1, V2, V3 parameters."></div>
@@ -2460,6 +2474,84 @@ document.querySelectorAll('.sec-rand').forEach(btn => {
     else if (sec === 'drift')     randomizeDrift();
   });
 });
+// Session save / load
+function saveSession() {
+  const scoreIds = ['sc-metricity','sc-tonality','sc-density',
+    'sc-bpm','sc-tonicShift','sc-morph','sc-gateMin',
+    'sc-gateMax','sc-velocityMax','sc-swing','sc-restCluster',
+    'sc-driftRate'];
+  const scoreData = {};
+  scoreIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) scoreData[id] = el.value;
+  });
+  const session = {
+    barlowgen: '1.2',
+    savedAt: new Date().toISOString(),
+    v1: Object.assign({}, P),
+    v2: Object.assign({}, voiceExts[0].params),
+    v3: Object.assign({}, voiceExts[1].params),
+    presets: presets.map(p => Object.assign({}, p)),
+    score: scoreData
+  };
+  const blob = new Blob([JSON.stringify(session, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'barlowgen-session-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  const st = document.getElementById('session-status');
+  if (st) st.textContent = 'Saved \u2713';
+}
+
+function loadSession(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    let data;
+    try { data = JSON.parse(e.target.result); }
+    catch {
+      const st = document.getElementById('session-status');
+      if (st) st.textContent = 'Error: invalid JSON';
+      return;
+    }
+    if (!data.barlowgen) {
+      const st = document.getElementById('session-status');
+      if (st) st.textContent = 'Error: not a Barlowgen session';
+      return;
+    }
+    if (data.v1) Object.assign(P, data.v1);
+    if (data.v2) Object.assign(voiceExts[0].params, data.v2);
+    if (data.v3) Object.assign(voiceExts[1].params, data.v3);
+    if (data.presets) {
+      presets.length = 0;
+      data.presets.forEach(p => presets.push(p));
+      savePresets();
+    }
+    if (data.score) {
+      Object.entries(data.score).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+      });
+    }
+    syncUI(); syncVoiceUI(); rebuildState();
+    rebuildVoiceState(voiceExts[0]);
+    rebuildVoiceState(voiceExts[1]);
+    renderPresets();
+    const st = document.getElementById('session-status');
+    if (st) st.textContent = 'Loaded \u2713 ' + (data.savedAt || '').slice(0,10);
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('btn-save-session').addEventListener('click', saveSession);
+document.getElementById('btn-load-session').addEventListener('click', () => {
+  document.getElementById('input-load-session').click();
+});
+document.getElementById('input-load-session').addEventListener('change', e => {
+  if (e.target.files[0]) loadSession(e.target.files[0]);
+  e.target.value = '';
+});
+
 // Hover tooltips
 const tipEl = document.getElementById('tip');
 document.querySelectorAll('[data-tip]').forEach(el => {
