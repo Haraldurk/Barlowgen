@@ -118,29 +118,23 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 }
 .sec-hdr:hover { color: rgba(230,233,245,0.95); }
 .sec-hdr.open { color: #e8c840; font-weight: 500; border-bottom-color: rgba(80,110,200,0.15); }
-.sec-hdr .sec-icon { font-size: 9px; color: inherit; transition: transform 0.2s; display: inline-block; margin-right: 8px; }
+.sec-hdr .sec-icon { font-size: 14px; color: inherit; transition: transform 0.2s; display: inline-block; margin-right: 8px; }
 .sec-hdr.open .sec-icon { transform: rotate(90deg); color: var(--accent); }
 .sec-hdr .sec-title { flex: 1; }
 .sec-hdr .sec-help {
-  font-size: 10px; color: rgba(140,145,170,0.5); cursor: help; margin-left: 8px; width: 14px; height: 14px;
-  border: 0.5px solid rgba(140,145,170,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
+  color: rgba(160,165,190,0.5); cursor: pointer; margin-left: 8px;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.2s; flex-shrink: 0;
 }
-.sec-hdr .sec-help:hover { color: rgba(200,205,220,0.8); border-color: rgba(200,205,220,0.4); }
-.sec-tooltip {
-  position: absolute; right: 290px; top: 0; width: 220px; background: rgba(8,8,24,0.98);
-  border: 0.5px solid rgba(80,110,200,0.3); border-radius: 8px; padding: 12px;
-  font-size: 10px; line-height: 1.5; color: #8090c0; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-  pointer-events: none; opacity: 0; transform: translateX(10px); transition: all 0.2s; z-index: 1000;
-  text-transform: none; letter-spacing: 0.02em;
-}
-.sec-help:hover + .sec-tooltip { opacity: 1; transform: translateX(0); }
+.sec-hdr .sec-help:hover { color: rgba(220,225,240,0.9); }
+.sec-tooltip { display: none; }
 
 .sec-hdr .sec-detach {
-  font-size: 9px; color: rgba(140,145,170,0.4); cursor: pointer; padding: 1px 4px; margin-left: 4px;
+  font-size: 11px; color: rgba(140,145,170,0.4); cursor: pointer; padding: 1px 4px; margin-left: 4px;
   border: 0.5px solid transparent; border-radius: 3px; transition: all 0.15s; line-height: 1;
 }
-.sec-hdr .sec-detach:hover { color: var(--accent); border-color: rgba(232,200,64,0.3); }
+.sec-hdr .sec-detach:hover { color: rgba(200,205,220,0.75); border-color: rgba(140,145,170,0.3); }
+#collapse-all:hover { color: rgba(230,232,240,0.9) !important; }
 
 .sec-body { display: none; padding: 10px 14px 14px; }
 .sec-body.open { display: block; }
@@ -178,13 +172,14 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 </style>
 </head>
 <body>
+<div id="tip" style="position:fixed;z-index:9999;pointer-events:none;background:rgba(14,14,22,0.95);border:1px solid rgba(100,105,130,0.4);color:rgba(210,215,230,0.9);font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.5;padding:7px 10px;border-radius:6px;max-width:220px;opacity:0;transition:opacity 0.15s;white-space:pre-wrap"></div>
 <canvas id="c"></canvas>
 
 <div id="status-bar">
   <button id="play-btn">&#9654; start</button>
   <button id="collapse-all" title="Collapse all sections"
-    style="padding:3px 8px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:10px;cursor:pointer;margin-left:4px"
-    onclick="toggleAllSections()">&#9776;</button>
+    style="padding:3px 8px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:rgba(180,185,210,0.6);font-family:var(--mono);font-size:14px;cursor:pointer;margin-left:4px;transition:color 0.15s"
+    onclick="toggleAllSections()">&#8863;</button>
   <span id="sb-title" style="margin-left:8px">barlowgen</span>
   <div id="sb-info" style="margin-left:auto; display:flex; gap:16px;">
     <span id="sb-pulses">6 pulses</span>
@@ -197,11 +192,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 <div id="panel">
   <!-- RHYTHM -->
   <div class="sec-hdr open" id="hdr-rhythm" onclick="toggleSec(this)">
-    <span class="sec-icon">&#9658;</span>
+    <span class="sec-icon">&#9656;</span>
     <span class="sec-title">Rhythm</span>
-    <span class="sec-help">?</span>
-    <div class="sec-tooltip">Controls the metric structure and pulse behaviour of Voice 1. Metricity gates probability by indispensability rank, while density scales overall activity.</div>
-    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('rhythm')">&#8599;</span>
+    <span class="sec-help" data-tip="Metric stratification — prime factors define pulse hierarchy. Metricity weights how strongly indispensability gates note probability."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
+    <div class="sec-tooltip"></div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('rhythm')">&#10530;</span>
   </div>
   <div id="body-rhythm" class="sec-body open">
     <div class="row">
@@ -224,11 +219,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 
   <!-- HARMONY -->
   <div class="sec-hdr open" id="hdr-harmony" onclick="toggleSec(this)">
-    <span class="sec-icon">&#9658;</span>
+    <span class="sec-icon">&#9656;</span>
     <span class="sec-title">Harmony</span>
-    <span class="sec-help">?</span>
-    <div class="sec-tooltip">Controls the pitch field for Voice 1. Scales can be directional (ascending/descending). Tonality weights pitches by their Barlow harmonicity H(P:Q).</div>
-    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('harmony')">&#8599;</span>
+    <span class="sec-help" data-tip="Just intonation pitch field. Tonality weights selection by harmonicity H(P:Q). Directional scales use separate ascending/descending forms."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
+    <div class="sec-tooltip"></div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('harmony')">&#10530;</span>
   </div>
   <div id="body-harmony" class="sec-body open">
     <div class="row">
@@ -296,11 +291,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 
   <!-- VOICES -->
   <div class="sec-hdr" id="hdr-voices" onclick="toggleSec(this)">
-    <span class="sec-icon">&#9658;</span>
+    <span class="sec-icon">&#9656;</span>
     <span class="sec-title">Voices</span>
-    <span class="sec-help">?</span>
-    <div class="sec-tooltip">Independent generative streams V2 and V3. Each follows the same algorithmic logic but with independent settings. Enable to layer counterpoint.</div>
-    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('voices')">&#8599;</span>
+    <span class="sec-help" data-tip="Three independent generative streams sharing master BPM. Each has its own stratification, scale, octave range, and MIDI channel."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
+    <div class="sec-tooltip"></div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('voices')">&#10530;</span>
   </div>
   <div id="body-voices" class="sec-body">
     <div class="row">
@@ -344,11 +339,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 
   <!-- TIMBRE -->
   <div class="sec-hdr" id="hdr-timbre" onclick="toggleSec(this)">
-    <span class="sec-icon">&#9658;</span>
+    <span class="sec-icon">&#9656;</span>
     <span class="sec-title">Timbre</span>
-    <span class="sec-help">?</span>
-    <div class="sec-tooltip">Sound design for Voice 1. Gate controls note duration relative to pulse, jitter adds micro-timing randomness, and bass vel adds a sub-octave.</div>
-    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('timbre')">&#8599;</span>
+    <span class="sec-help" data-tip="Waveform, dynamics, and expressiveness. Swing, rest clustering, echo probability, and drift shape the musical personality."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
+    <div class="sec-tooltip"></div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('timbre')">&#10530;</span>
   </div>
   <div id="body-timbre" class="sec-body">
     <div class="row">
@@ -384,11 +379,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 
   <!-- MIDI -->
   <div class="sec-hdr" id="hdr-midi" onclick="toggleSec(this)">
-    <span class="sec-icon">&#9658;</span>
+    <span class="sec-icon">&#9656;</span>
     <span class="sec-title">MIDI</span>
-    <span class="sec-help">?</span>
-    <div class="sec-tooltip">External device routing. Connect Barlowgen to your DAW or synths. Maintains sample-accurate synchronization with the WebAudio clock.</div>
-    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('midi')">&#8599;</span>
+    <span class="sec-help" data-tip="WebMIDI output with sample-accurate scheduling. Tonic shift is transmitted as pitch bend in real time."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
+    <div class="sec-tooltip"></div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('midi')">&#10530;</span>
   </div>
   <div id="body-midi" class="sec-body">
     <div class="row">
@@ -420,11 +415,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 
   <!-- TUNING -->
   <div class="sec-hdr" id="hdr-tuning" onclick="toggleSec(this)">
-    <span class="sec-icon">&#9658;</span>
+    <span class="sec-icon">&#9656;</span>
     <span class="sec-title">Tuning</span>
-    <span class="sec-help">?</span>
-    <div class="sec-tooltip">Generate just-intonation scales from cents. Bandwidth sigma controls harmonic proximity vs. precision. Drag .scl files to load.</div>
-    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('tuning')">&#8599;</span>
+    <span class="sec-help" data-tip="Gaussian bell rationalization after Barlow. Finds the nearest just ratio for each cent value. Drop a .scl file to import Scala tunings."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
+    <div class="sec-tooltip"></div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('tuning')">&#10530;</span>
   </div>
   <div id="body-tuning" class="sec-body">
     <div class="row">
@@ -444,11 +439,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 
   <!-- SCORE -->
   <div class="sec-hdr" id="hdr-score" onclick="toggleSec(this)">
-    <span class="sec-icon">&#9658;</span>
+    <span class="sec-icon">&#9656;</span>
     <span class="sec-title">Score</span>
-    <span class="sec-help">?</span>
-    <div class="sec-tooltip">Parameter automation using time:value breakpoints. Linear interpolation between points. Time in seconds from Play.</div>
-    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('score')">&#8599;</span>
+    <span class="sec-help" data-tip="Parameter automation in breakpoint format: 0:0.65 30:0.9 60:0.3&#10;Time in seconds, linear interpolation. Morph A&#x2194;B is also automatable."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
+    <div class="sec-tooltip"></div>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('score')">&#10530;</span>
   </div>
   <div id="body-score" class="sec-body">
     <div class="row">
@@ -2026,6 +2021,21 @@ if (navigator.requestMIDIAccess) {
   }).catch(() => {});
 }
 requestAnimationFrame(frame);
+// Hover tooltips
+const tipEl = document.getElementById('tip');
+document.querySelectorAll('[data-tip]').forEach(el => {
+  el.addEventListener('mouseenter', e => {
+    tipEl.textContent = el.dataset.tip;
+    tipEl.style.opacity = '1';
+  });
+  el.addEventListener('mousemove', e => {
+    const x = Math.min(e.clientX + 14, window.innerWidth - 240);
+    const y = Math.min(e.clientY + 14, window.innerHeight - 80);
+    tipEl.style.left = x + 'px';
+    tipEl.style.top = y + 'px';
+  });
+  el.addEventListener('mouseleave', () => { tipEl.style.opacity = '0'; });
+});
 </script>
 </body>
 </html>
