@@ -79,7 +79,7 @@ qualitative musical traits are quantified and modulated in real-time.
 - Session save/load: JSON snapshot of P, V2/V3 params, presets, score inputs (SESSION section)
 - Score timeline: per-param colored breakpoint markers (amber→blue hue spread), live playhead (scoreAuto.running)
 - Right-click context menu: MIDI learn + LFO assign per slider (18 V1 sliders have data-param)
+- Preset name flash in status bar on load (3s, auto-revert)
 
 ## What Still Needs Building
-- Preset name shown in status bar on load
 - V2/V3 params in timed morph (currently V1 only)
