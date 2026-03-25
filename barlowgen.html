@@ -2078,6 +2078,7 @@ function doRandomize() {
   randomizeTimbre();
   randomizeExpression();
   randomizeDrift();
+  randomizeVoices();
   // Constraint: metricity and tonality not both below 0.25
   if (P.metricity < 0.25 && P.tonality < 0.25) P.tonality = 0.25;
   syncUI(); rebuildState(); randomBurst = 1;
