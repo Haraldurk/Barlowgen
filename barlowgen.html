@@ -1275,9 +1275,14 @@ function applyMorph(t) {
   const a = presets[activeIdx] && presets[activeIdx].data;
   const b = presets[morphBIdx] && presets[morphBIdx].data;
   if (!a || !b) return;
-  const keys = ['metricity','tonality','density','bpm','volume','gate','jitter','bassVel'];
-  keys.forEach(k => { if (a[k] !== undefined && b[k] !== undefined) P[k] = a[k] + (b[k] - a[k]) * t; });
-  if (t > 0.5) ['scale','wave','tonic','octave','ambitus'].forEach(k => { if (b[k] !== undefined) P[k] = b[k]; });
+  const NUMERIC = ['metricity','tonality','density','bpm','volume',
+    'gate','jitter','bassVel','swing','restCluster','echoProbability',
+    'driftRate','driftDepth','velocityDepth','complexity','tonicShift',
+    'synnefism','rotation','gateMin','gateMax'];
+  const DISCRETE = ['scale','wave','tonic','octave','ambitus'];
+  const av1 = a.v1 || a, bv1 = b.v1 || b;
+  NUMERIC.forEach(k => { if (av1[k] !== undefined && bv1[k] !== undefined) P[k] = av1[k] + (bv1[k] - av1[k]) * t; });
+  if (t > 0.5) DISCRETE.forEach(k => { if (bv1[k] !== undefined) P[k] = bv1[k]; });
   syncUI();
   rebuildState();
 }
