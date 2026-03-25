@@ -183,6 +183,7 @@ select optgroup { background: #080818; color: #303060;
     <span id="sb-pulses">6 pulses</span>
     <span id="sb-strat">[3&#215;2]</span>
     <span id="sb-bpm">72 bpm</span>
+    <span id="phrase-loop-ind" title="phrase loop (L)" style="opacity:0.3;cursor:pointer;margin-left:8px">&#10227;</span>
   </div>
 </div>
 
@@ -851,15 +852,29 @@ function firePulse(idx, t, S, voiceIdx) {
     const noteArr = S.notes.directional
       ? (S.direction >= 0 ? S.notes.aroha : S.notes.avaroha)
       : (S.notes.aroha || S.notes);
-    const ep = S.echoProbability || 0;
-    let note;
-    if (ep > 0 && S.lastNote && Math.random() < ep) {
-      note = S.lastNote;
-    } else {
-      note = weightedPick(noteArr, nr, S.tonality,
-        S.synnefism !== undefined ? S.synnefism : (P.synnefism || 0),
-        S.driftBias || 0,
-        S.driftDepth !== undefined ? S.driftDepth : (P.driftDepth || 0));
+    const filtered = noteArr.filter(n => n.nh >= (1 - (S.complexity !== undefined ? S.complexity : (P.complexity || 1))));
+    const pool = filtered.length ? filtered : noteArr;
+    let note = null;
+    if (voiceIdx === 0 && phraseLoop.active && phraseLoop.buf.length >= phraseLoop.len) {
+      const bufNote = phraseLoop.buf[phraseLoop.pos];
+      note = (bufNote && Math.random() >= 0.2) ? bufNote
+        : weightedPick(pool, nr, S.tonality, S.synnefism||0, S.driftBias||0, S.driftDepth||0);
+      phraseLoop.buf[phraseLoop.pos] = note;
+      phraseLoop.pos = (phraseLoop.pos + 1) % phraseLoop.len;
+    } else if (voiceIdx === 0 && phraseLoop.active && phraseLoop.buf.length < phraseLoop.len) {
+      note = weightedPick(pool, nr, S.tonality, S.synnefism||0, S.driftBias||0, S.driftDepth||0);
+      phraseLoop.buf.push(note);
+    }
+    if (note === null) {
+      const ep = S.echoProbability || 0;
+      if (ep > 0 && S.lastNote && Math.random() < ep) {
+        note = S.lastNote;
+      } else {
+        note = weightedPick(pool, nr, S.tonality,
+          S.synnefism !== undefined ? S.synnefism : (P.synnefism || 0),
+          S.driftBias || 0,
+          S.driftDepth !== undefined ? S.driftDepth : (P.driftDepth || 0));
+      }
     }
     if (note) {
       if (S.lastFreq) {
@@ -1932,6 +1947,19 @@ document.addEventListener('keydown', e => {
     else loadPreset(idx);
   }
   if (e.key === 'v' || e.key === 'V') { probVizOn = !probVizOn; }
+  if (e.key === 'r' || e.key === 'R') { doRandomize(); }
+  if (e.key === 'l' || e.key === 'L') {
+    phraseLoop.active = !phraseLoop.active;
+    phraseLoop.buf = []; phraseLoop.pos = 0;
+    const ind = document.getElementById('phrase-loop-ind');
+    if (ind) ind.style.opacity = phraseLoop.active ? '1' : '0.3';
+  }
+});
+document.getElementById('phrase-loop-ind')?.addEventListener('click', () => {
+  phraseLoop.active = !phraseLoop.active;
+  phraseLoop.buf = []; phraseLoop.pos = 0;
+  const ind = document.getElementById('phrase-loop-ind');
+  if (ind) ind.style.opacity = phraseLoop.active ? '1' : '0.3';
 });
 
 [['v2', 0], ['v3', 1]].forEach(([pfx, vi]) => {
