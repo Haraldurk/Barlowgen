@@ -1931,22 +1931,20 @@ document.getElementById('bpm').addEventListener('input', e => {
   for (const ve of voiceExts) { if (ve.params.enabled) rebuildVoiceState(ve); }
 });
 document.getElementById('scale').addEventListener('change', e => {
-  P.scale = e.target.value;
-  state.notes = buildNotes(P.scale, P.tonic, P.octave, P.ambitus);
+  P.scale = e.target.value; rebuildState();
 });
 document.getElementById('tonic').addEventListener('change', e => {
-  P.tonic = e.target.value;
-  state.notes = buildNotes(P.scale, P.tonic, P.octave, P.ambitus);
+  P.tonic = e.target.value; rebuildState();
 });
 document.getElementById('octave').addEventListener('input', e => {
   P.octave = +e.target.value;
   document.getElementById('ov').textContent = P.octave;
-  state.notes = buildNotes(P.scale, P.tonic, P.octave, P.ambitus);
+  rebuildState();
 });
 document.getElementById('ambitus').addEventListener('input', e => {
   P.ambitus = +e.target.value;
   document.getElementById('av').textContent = P.ambitus + ' oct';
-  state.notes = buildNotes(P.scale, P.tonic, P.octave, P.ambitus);
+  rebuildState();
 });
 document.getElementById('wave').addEventListener('change', e => {
   P.wave = e.target.value; state.wave = P.wave;
