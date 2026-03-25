@@ -215,6 +215,9 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <div class="row">
       <div class="lbl"><span>stratification</span></div>
       <input type="text" id="strat" value="3 2" spellcheck="false">
+      <button id="strat-rand" title="Barlowian random stratification"
+        data-tip="Generates stratification by weighted prime selection.&#10;Probability ∝ 1/ξ(p) — prime 2 most likely (ξ=1),&#10;then 3 (ξ=2.67), 5 (ξ=6.4), 7 (ξ=14.7) rarely.&#10;Barlow's indigestibility drives the meter vocabulary."
+        style="margin-left:6px;padding:2px 7px;background:rgba(232,200,64,0.08);border:1px solid rgba(232,200,64,0.25);color:rgba(232,200,64,0.6);font-family:'IBM Plex Mono',monospace;font-size:12px;border-radius:3px;cursor:pointer;transition:all 0.15s">⚄</button>
     </div>
     <div class="row">
       <div class="lbl"><span>metricity</span><span id="mv">0.65</span></div>
@@ -1976,9 +1979,32 @@ function drawProbViz() {
 }
 
 // ── Constrained randomize ──────────────────────────────────
+function barlowRandomStrat(maxPulses, maxFactors) {
+  maxPulses = maxPulses || 12;
+  maxFactors = maxFactors || 3;
+  const PRIMES = [2, 3, 5, 7];
+  const factors = [];
+  let product = 1;
+  for (let i = 0; i < maxFactors; i++) {
+    const available = PRIMES.filter(p => product * p <= maxPulses);
+    if (!available.length) break;
+    const avWeights = available.map(p => 1 / indig(p));
+    const total = avWeights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    let chosen = available[available.length - 1];
+    for (let j = 0; j < available.length; j++) {
+      r -= avWeights[j];
+      if (r <= 0) { chosen = available[j]; break; }
+    }
+    factors.push(chosen);
+    product *= chosen;
+    if (factors.length >= 1 && Math.random() < 0.4) break;
+  }
+  return factors.length ? factors : [4];
+}
+
 function randomizeRhythm() {
-  const STRATS = [[2,2],[3,2],[2,3],[2,2,2],[3,3],[5,2],[2,5],[7],[5,3],[3,2,2],[2,2,3]];
-  P.strat = STRATS[Math.floor(Math.random() * STRATS.length)];
+  P.strat = barlowRandomStrat(12, 3);
   P.metricity = 0.15 + Math.random() * 0.75;
   P.density = 0.35 + Math.random() * 0.65;
   P.rotation = Math.random() < 0.3 ? Math.random() : 0;
@@ -2363,6 +2389,18 @@ if (navigator.requestMIDIAccess) {
   }).catch(() => {});
 }
 requestAnimationFrame(frame);
+// Strat randomizer button
+const stratRandBtn = document.getElementById('strat-rand');
+if (stratRandBtn) {
+  stratRandBtn.addEventListener('click', () => {
+    P.strat = barlowRandomStrat(12, 3);
+    document.getElementById('strat').value = P.strat.join(' ');
+    rebuildState();
+    randomBurst = 1;
+  });
+  stratRandBtn.addEventListener('mouseenter', () => stratRandBtn.style.color = 'rgba(232,200,64,0.95)');
+  stratRandBtn.addEventListener('mouseleave', () => stratRandBtn.style.color = 'rgba(232,200,64,0.6)');
+}
 // Section randomizers
 document.querySelectorAll('.sec-rand').forEach(btn => {
   btn.addEventListener('mouseenter', () => btn.style.color = 'rgba(232,200,64,0.95)');
