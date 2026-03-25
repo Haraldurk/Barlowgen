@@ -114,6 +114,33 @@ select optgroup { background: #080818; color: #303060;
 .divider { height: 0.5px; background: rgba(80,100,200,0.08); margin: 10px 0; }
 .hidden { display: none !important; }
 
+.sec-hdr { 
+  display: flex; align-items: center; gap: 6px;
+  font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; 
+  color: #383870; margin: 14px 0 8px; border-top: 0.5px solid rgba(80,100,200,0.08); 
+  padding-top: 10px; cursor: pointer; user-select: none;
+}
+.sec-hdr:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+.sec-hdr .sec-icon { transition: transform 0.2s; display: inline-block; font-size: 7px; color: #2a2a50; }
+.sec-hdr.open { color: #5060a0; }
+.sec-hdr.open .sec-icon { transform: rotate(90deg); color: var(--accent); }
+.sec-body { transition: all 0.3s; }
+.sec-body.closed { display: none; }
+
+.tip { position: relative; }
+.tip::after {
+  content: attr(data-tip);
+  position: absolute; right: 0; top: -28px;
+  background: rgba(8,8,24,0.96);
+  border: 0.5px solid rgba(80,100,200,0.25);
+  border-radius: 4px; padding: 3px 8px;
+  font-size: 9px; color: #6070a0;
+  letter-spacing: 0.04em; white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.15s; z-index: 100;
+}
+.tip:hover::after { opacity: 1; }
+
 .pslot {
   width: 22px; height: 20px;
   background: rgba(255,255,255,0.02);
@@ -141,32 +168,69 @@ select optgroup { background: #080818; color: #303060;
     <span id="sb-strat">[3&#215;2]</span>
     <span id="sb-bpm">72 bpm</span>
   </div>
+  <div id="sb-sections" style="display:flex;gap:4px;margin-left:8px">
+    <button onclick="jumpToSec('rhythm')" 
+      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
+      title="Rhythm">RHY</button>
+    <button onclick="jumpToSec('harmony')"
+      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
+      title="Harmony">HAR</button>
+    <button onclick="jumpToSec('voices')"
+      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
+      title="Voices">VOI</button>
+    <button onclick="jumpToSec('midi')"
+      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
+      title="MIDI">MID</button>
+    <button onclick="jumpToSec('timbre')"
+      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
+      title="Timbre">TIM</button>
+  </div>
+  <div id="sb-sections" style="display:flex;gap:4px;margin-left:8px">
+    <button onclick="jumpToSec('rhythm')" 
+      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
+      title="Rhythm">RHY</button>
+    <button onclick="jumpToSec('harmony')"
+      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
+      title="Harmony">HAR</button>
+    <button onclick="jumpToSec('voices')"
+      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
+      title="Voices">VOI</button>
+    <button onclick="jumpToSec('midi')"
+      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
+      title="MIDI">MID</button>
+    <button onclick="jumpToSec('timbre')"
+      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
+      title="Timbre">TIM</button>
+  </div>
   <button id="play-btn">&#9654; start</button>
 </div>
 
 <div id="panel">
-  <div class="sec-label">rhythm · v1</div>
-  <div class="row">
-    <div class="lbl"><span>stratification</span></div>
-    <input type="text" id="strat" value="3 2" spellcheck="false">
-  </div>
-  <div class="row">
-    <div class="lbl"><span>metricity</span><span id="mv">0.65</span></div>
-    <input type="range" id="metricity" min="0" max="1" step="0.01" value="0.65">
-  </div>
-  <div class="row">
-    <div class="lbl"><span>density</span><span id="dv">1.00</span></div>
-    <input type="range" id="density" min="0" max="1" step="0.01" value="1">
-  </div>
-  <div class="row">
-    <div class="lbl"><span>tempo</span><span id="bv">72 bpm</span></div>
-    <input type="range" id="bpm" min="30" max="220" step="1" value="72">
+  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>rhythm</div>
+  <div class="sec-body">
+    <div class="row tip" data-tip="metric stratification e.g. 3 2">
+      <div class="lbl"><span>stratification</span></div>
+      <input type="text" id="strat" value="3 2" spellcheck="false">
+    </div>
+    <div class="row tip" data-tip="pulse fire probability by rank">
+      <div class="lbl"><span>metricity</span><span id="mv">0.65</span></div>
+      <input type="range" id="metricity" min="0" max="1" step="0.01" value="0.65">
+    </div>
+    <div class="row tip" data-tip="fraction of pulses that fire">
+      <div class="lbl"><span>density</span><span id="dv">1.00</span></div>
+      <input type="range" id="density" min="0" max="1" step="0.01" value="1">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>tempo</span><span id="bv">72 bpm</span></div>
+      <input type="range" id="bpm" min="30" max="220" step="1" value="72">
+    </div>
   </div>
 
-  <div class="sec-label">harmony · v1</div>
-  <div class="row">
-    <div class="lbl"><span>scale</span></div>
-    <select id="scale">
+  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>harmony</div>
+  <div class="sec-body">
+    <div class="row tip" data-tip="just intonation pitch set">
+      <div class="lbl"><span>scale</span></div>
+      <select id="scale">
       <optgroup label="— western">
         <option value="major">major (just intonation)</option>
         <option value="minor">minor (just intonation)</option>
@@ -201,7 +265,7 @@ select optgroup { background: #080818; color: #303060;
       </optgroup>
     </select>
   </div>
-  <div class="row">
+  <div class="row tip" data-tip="root pitch">
     <div class="lbl"><span>tonic</span></div>
     <select id="tonic">
       <option>C</option><option>C#</option><option>D</option><option>D#</option>
@@ -209,66 +273,70 @@ select optgroup { background: #080818; color: #303060;
       <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
     </select>
   </div>
-  <div class="row">
+  <div class="row tip" data-tip="root octave 1=low 5=high">
     <div class="lbl"><span>octave</span><span id="ov">3</span></div>
     <input type="range" id="octave" min="1" max="5" step="1" value="3">
   </div>
-  <div class="row">
+  <div class="row tip" data-tip="range in octaves above tonic">
     <div class="lbl"><span>ambitus</span><span id="av">2 oct</span></div>
     <input type="range" id="ambitus" min="1" max="4" step="1" value="2">
   </div>
-  <div class="row">
+  <div class="row tip" data-tip="harmonic pitch weighting">
     <div class="lbl"><span>tonality</span><span id="tv">0.70</span></div>
     <input type="range" id="tonality" min="0" max="1" step="0.01" value="0.70">
   </div>
+</div>
 
-  <div class="sec-label">voices</div>
-  <div class="row">
-    <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:#5060a0;cursor:pointer">
-      <input type="checkbox" id="v2-en"> voice 2
-      <span style="color:hsl(138,65%,55%);margin-left:4px">&#9679;</span>
-    </label>
-  </div>
-  <div class="row">
-    <div class="lbl"><span>strat</span></div>
-    <input type="text" id="v2-strat" value="2 3" spellcheck="false">
-  </div>
-  <div class="row">
-    <div class="lbl"><span>metricity</span><span id="v2mv">0.50</span></div>
-    <input type="range" id="v2-metricity" min="0" max="1" step="0.01" value="0.5">
-  </div>
-  <div class="row">
-    <div class="lbl"><span>tonality</span><span id="v2tv">0.50</span></div>
-    <input type="range" id="v2-tonality" min="0" max="1" step="0.01" value="0.5">
-  </div>
-  <div class="divider"></div>
-  <div class="row">
-    <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:#5060a0;cursor:pointer">
-      <input type="checkbox" id="v3-en"> voice 3
-      <span style="color:hsl(318,65%,55%);margin-left:4px">&#9679;</span>
-    </label>
-  </div>
-  <div class="row">
-    <div class="lbl"><span>strat</span></div>
-    <input type="text" id="v3-strat" value="2 2" spellcheck="false">
-  </div>
-  <div class="row">
-    <div class="lbl"><span>metricity</span><span id="v3mv">0.50</span></div>
-    <input type="range" id="v3-metricity" min="0" max="1" step="0.01" value="0.5">
-  </div>
-  <div class="row">
-    <div class="lbl"><span>tonality</span><span id="v3tv">0.50</span></div>
-    <input type="range" id="v3-tonality" min="0" max="1" step="0.01" value="0.5">
+  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>voices</div>
+  <div class="sec-body">
+    <div class="row">
+      <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:#5060a0;cursor:pointer">
+        <input type="checkbox" id="v2-en"> voice 2
+        <span style="color:hsl(138,65%,55%);margin-left:4px">&#9679;</span>
+      </label>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>strat</span></div>
+      <input type="text" id="v2-strat" value="2 3" spellcheck="false">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>metricity</span><span id="v2mv">0.50</span></div>
+      <input type="range" id="v2-metricity" min="0" max="1" step="0.01" value="0.5">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>tonality</span><span id="v2tv">0.50</span></div>
+      <input type="range" id="v2-tonality" min="0" max="1" step="0.01" value="0.5">
+    </div>
+    <div class="divider"></div>
+    <div class="row">
+      <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:#5060a0;cursor:pointer">
+        <input type="checkbox" id="v3-en"> voice 3
+        <span style="color:hsl(318,65%,55%);margin-left:4px">&#9679;</span>
+      </label>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>strat</span></div>
+      <input type="text" id="v3-strat" value="2 2" spellcheck="false">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>metricity</span><span id="v3mv">0.50</span></div>
+      <input type="range" id="v3-metricity" min="0" max="1" step="0.01" value="0.5">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>tonality</span><span id="v3tv">0.50</span></div>
+      <input type="range" id="v3-tonality" min="0" max="1" step="0.01" value="0.5">
+    </div>
   </div>
 
-  <div class="sec-label">midi out</div>
-  <div class="row">
-    <div class="lbl"><span>device</span></div>
-    <select id="midi-dev"><option value="">-- none --</option></select>
-  </div>
-  <div class="row">
-    <div class="lbl"><span>channel</span></div>
-    <select id="midi-chan">
+  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>midi out</div>
+  <div class="sec-body">
+    <div class="row">
+      <div class="lbl"><span>device</span></div>
+      <select id="midi-dev"><option value="">-- none --</option></select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>channel</span></div>
+      <select id="midi-chan">
       <option value="1" selected>1</option><option value="2">2</option>
       <option value="3">3</option><option value="4">4</option>
       <option value="5">5</option><option value="6">6</option>
@@ -287,11 +355,13 @@ select optgroup { background: #080818; color: #303060;
     <div class="lbl"><span>vel max</span><span id="vlmax">110</span></div>
     <input type="range" id="vel-max" min="40" max="127" step="1" value="110">
   </div>
+</div>
 
-  <div class="sec-label">timbre · v1</div>
-  <div class="row">
-    <div class="lbl"><span>wave</span></div>
-    <select id="wave">
+  <div class="sec-hdr open" onclick="toggleSec(this)"><span class="sec-icon">&#9654;</span>timbre</div>
+  <div class="sec-body">
+    <div class="row tip" data-tip="oscillator waveform">
+      <div class="lbl"><span>wave</span></div>
+      <select id="wave">
       <option value="sine">sine</option>
       <option value="triangle" selected>triangle</option>
       <option value="sawtooth">sawtooth</option>
@@ -301,18 +371,19 @@ select optgroup { background: #080818; color: #303060;
     <div class="lbl"><span>volume</span><span id="vv">0.50</span></div>
     <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
   </div>
-  <div class="row">
+  <div class="row tip" data-tip="note duration / pulse interval">
     <div class="lbl"><span>gate</span><span id="gv">0.80</span></div>
     <input type="range" id="gate" min="0.05" max="1" step="0.01" value="0.8">
   </div>
-  <div class="row">
+  <div class="row tip" data-tip="random timing offset">
     <div class="lbl"><span>jitter</span><span id="jv">0.00</span></div>
     <input type="range" id="jitter" min="0" max="1" step="0.01" value="0">
   </div>
-  <div class="row">
+  <div class="row tip" data-tip="bass shadow voice amplitude">
     <div class="lbl"><span>bass vel</span><span id="bsv">0.50</span></div>
     <input type="range" id="bassVel" min="0" max="1" step="0.01" value="0.5">
   </div>
+</div>
 </div>
 
 <div id="state-bar">
@@ -928,6 +999,25 @@ function midiNoteOff(note, chan, t) {
 
 function freqToMidi(freq) {
   return Math.round(69 + 12 * Math.log2(freq / 440));
+}
+
+function toggleSec(hdr) {
+  hdr.classList.toggle('open');
+  const body = hdr.nextElementSibling;
+  if (body && body.classList.contains('sec-body')) {
+    body.classList.toggle('closed');
+  }
+}
+
+function jumpToSec(name) {
+  const hdrs = document.querySelectorAll('.sec-hdr');
+  for (const hdr of hdrs) {
+    if (hdr.textContent.toLowerCase().includes(name)) {
+      hdr.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (hdr.nextElementSibling.classList.contains('closed')) toggleSec(hdr);
+      return;
+    }
+  }
 }
 
 function rebuildState() {
