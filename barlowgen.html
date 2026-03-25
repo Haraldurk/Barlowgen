@@ -226,15 +226,15 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     </div>
     <div class="row">
       <div class="lbl"><span>metricity</span><span id="mv">0.65</span></div>
-      <input type="range" id="metricity" min="0" max="1" step="0.01" value="0.65">
+      <input type="range" id="metricity" data-param="metricity" min="0" max="1" step="0.01" value="0.65">
     </div>
     <div class="row">
       <div class="lbl"><span>density</span><span id="dv">1.00</span></div>
-      <input type="range" id="density" min="0" max="1" step="0.01" value="1">
+      <input type="range" id="density" data-param="density" min="0" max="1" step="0.01" value="1">
     </div>
     <div class="row">
       <div class="lbl"><span>tempo</span><span id="bv">72 bpm</span></div>
-      <input type="range" id="bpm" min="30" max="220" step="1" value="72">
+      <input type="range" id="bpm" data-param="bpm" min="30" max="220" step="1" value="72">
     </div>
   </div>
 
@@ -303,12 +303,12 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     </div>
     <div class="row">
       <div class="lbl"><span>tonality</span><span id="tv">0.70</span></div>
-      <input type="range" id="tonality" min="0" max="1" step="0.01" value="0.70">
+      <input type="range" id="tonality" data-param="tonality" min="0" max="1" step="0.01" value="0.70">
     </div>
-    <div class="row"><div class="lbl"><span>tonic shift</span><span id="tsv">0.0</span></div><input type="range" id="tonicShift" min="-12" max="12" step="0.1" value="0"></div>
-    <div class="row"><div class="lbl"><span>synnefism</span><span id="syv">0.00</span></div><input type="range" id="synnefism" min="0" max="1" step="0.01" value="0"></div>
-    <div class="row"><div class="lbl"><span>rotation</span><span id="rv">0.00</span></div><input type="range" id="rotation" min="0" max="1" step="0.01" value="0"></div>
-    <div class="row"><div class="lbl"><span>complexity</span><span id="complexity-v">1.00</span></div><input type="range" id="complexity" min="0" max="1" step="0.01" value="1.0"></div>
+    <div class="row"><div class="lbl"><span>tonic shift</span><span id="tsv">0.0</span></div><input type="range" id="tonicShift" data-param="tonicShift" min="-12" max="12" step="0.1" value="0"></div>
+    <div class="row"><div class="lbl"><span>synnefism</span><span id="syv">0.00</span></div><input type="range" id="synnefism" data-param="synnefism" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>rotation</span><span id="rv">0.00</span></div><input type="range" id="rotation" data-param="rotation" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>complexity</span><span id="complexity-v">1.00</span></div><input type="range" id="complexity" data-param="complexity" min="0" max="1" step="0.01" value="1.0"></div>
   </div>
 
   <!-- VOICE 2 -->
@@ -545,27 +545,27 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     </div>
     <div class="row">
       <div class="lbl"><span>volume</span><span id="vv">0.50</span></div>
-      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+      <input type="range" id="volume" data-param="volume" min="0" max="1" step="0.01" value="0.5">
     </div>
     <div class="row">
       <div class="lbl"><span>gate</span><span id="gv">0.80</span></div>
-      <input type="range" id="gate" min="0.05" max="1" step="0.01" value="0.8">
+      <input type="range" id="gate" data-param="gate" min="0.05" max="1" step="0.01" value="0.8">
     </div>
     <div class="row">
       <div class="lbl"><span>jitter</span><span id="jv">0.00</span></div>
-      <input type="range" id="jitter" min="0" max="1" step="0.01" value="0">
+      <input type="range" id="jitter" data-param="jitter" min="0" max="1" step="0.01" value="0">
     </div>
     <div class="row">
       <div class="lbl"><span>bass vel</span><span id="bsv">0.50</span></div>
-      <input type="range" id="bassVel" min="0" max="1" step="0.01" value="0.5">
+      <input type="range" id="bassVel" data-param="bassVel" min="0" max="1" step="0.01" value="0.5">
     </div>
     <div style="text-align:right;margin-bottom:4px"><span class="sec-rand inline" data-sec="expression" title="randomize expression">⚄ expression</span></div>
-    <div class="row"><div class="lbl"><span>swing</span><span id="swing-v">0.00</span></div><input type="range" id="swing" min="0" max="1" step="0.01" value="0"></div>
-    <div class="row"><div class="lbl"><span>rest cluster</span><span id="restCluster-v">0.00</span></div><input type="range" id="restCluster" min="0" max="1" step="0.01" value="0"></div>
-    <div class="row"><div class="lbl"><span>echo prob</span><span id="echoProbability-v">0.00</span></div><input type="range" id="echoProbability" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>swing</span><span id="swing-v">0.00</span></div><input type="range" id="swing" data-param="swing" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>rest cluster</span><span id="restCluster-v">0.00</span></div><input type="range" id="restCluster" data-param="restCluster" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>echo prob</span><span id="echoProbability-v">0.00</span></div><input type="range" id="echoProbability" data-param="echoProbability" min="0" max="1" step="0.01" value="0"></div>
     <div style="text-align:right;margin:6px 0 4px"><span class="sec-rand inline" data-sec="drift" title="randomize drift">⚄ drift</span></div>
-    <div class="row"><div class="lbl"><span>drift rate</span><span id="driftRate-v">0.00</span></div><input type="range" id="driftRate" min="0" max="1" step="0.01" value="0"></div>
-    <div class="row"><div class="lbl"><span>drift depth</span><span id="driftDepth-v">0.50</span></div><input type="range" id="driftDepth" min="0" max="1" step="0.01" value="0.5"></div>
+    <div class="row"><div class="lbl"><span>drift rate</span><span id="driftRate-v">0.00</span></div><input type="range" id="driftRate" data-param="driftRate" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>drift depth</span><span id="driftDepth-v">0.50</span></div><input type="range" id="driftDepth" data-param="driftDepth" min="0" max="1" step="0.01" value="0.5"></div>
   </div>
 
   <!-- MIDI -->
@@ -596,7 +596,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     </div>
     <div class="row">
       <div class="lbl"><span data-tip="0 = all notes equal velocity (Barlow-faithful). 1 = indispensability drives dynamics — strong beats louder.">velocity depth</span><span id="velocityDepth-v">0.70</span></div>
-      <input type="range" id="velocityDepth" min="0" max="1" step="0.01" value="0.7">
+      <input type="range" id="velocityDepth" data-param="velocityDepth" min="0" max="1" step="0.01" value="0.7">
     </div>
   </div>
 
@@ -1022,6 +1022,10 @@ const vQueue = []; // visual events keyed to audio time
 // ── New feature state ────────────────────────────────────────
 let lastFireTime = 0, lastFireNH = 0;
 let driftPhase = 0, resonancePhase = 0, resonating = false;
+let ctxParam = null;
+let midiLearnArmed = false;
+const ccMap = {};
+const lfoSlots = {};
 let probVizVisible = false, probVizOn = false, randomBurst = 0;
 const phraseLoop = { active: false, len: 8, buf: [], pos: 0 };
 
@@ -1419,6 +1423,32 @@ function renderPresets() {
   });
 }
 
+function onMidiMessage(e) {
+  const data = e.data;
+  if (!data || data.length < 3) return;
+  const status = data[0] & 0xf0;
+  if (status !== 0xb0) return;   // only CC messages
+  // MIDI Learn intercept
+  if (midiLearnArmed && ctxParam) {
+    ccMap[data[1]] = ctxParam;
+    midiLearnArmed = false;
+    hideCtxMenu();
+    return;
+  }
+  // Apply mapped CC to P param
+  if (ccMap[data[1]] !== undefined) {
+    const pName = ccMap[data[1]];
+    if (Object.prototype.hasOwnProperty.call(P, pName)) {
+      const el = document.getElementById(pName);
+      const min = el ? parseFloat(el.min) : 0;
+      const max = el ? parseFloat(el.max) : 1;
+      P[pName] = min + (data[2] / 127) * (max - min);
+      syncUI();
+      rebuildState();
+    }
+  }
+}
+
 function populateMidiDevices() {
   if (!midiAccess) return;
   const sel = document.getElementById('midi-dev');
@@ -1432,6 +1462,10 @@ function populateMidiDevices() {
   }
   sel.value = prev;
   midiOut = midiAccess.outputs.get(sel.value) || null;
+  // Wire MIDI inputs for CC learn
+  for (const input of midiAccess.inputs.values()) {
+    input.onmidimessage = onMidiMessage;
+  }
 }
 
 function midiNoteOn(note, vel, chan, t) {
@@ -1784,6 +1818,20 @@ function tickModulators(dt) {
     }
   } else {
     resonating = false;
+  }
+
+  // Per-param LFO slots
+  const lfoKeys = Object.keys(lfoSlots);
+  for (let i = 0; i < lfoKeys.length; i++) {
+    const pName = lfoKeys[i];
+    if (!Object.prototype.hasOwnProperty.call(P, pName)) continue;
+    const lfo = lfoSlots[pName];
+    const period = 30 / (lfo.rate * 0.9 + 0.1);   // ~3s–300s
+    lfo.phase = (lfo.phase + dt / period) % 1;
+    const mod = Math.sin(lfo.phase * Math.PI * 2) * lfo.depth * 0.5;
+    if (Object.prototype.hasOwnProperty.call(state, pName)) {
+      state[pName] = Math.max(0, Math.min(1, P[pName] + mod));
+    }
   }
 }
 
@@ -2632,6 +2680,90 @@ document.getElementById('input-load-session').addEventListener('change', e => {
   e.target.value = '';
 });
 
+// Context menu
+function showCtxMenu(e, paramName) {
+  e.preventDefault();
+  ctxParam = paramName;
+  document.getElementById('ctx-label').textContent = paramName;
+  const cc = Object.entries(ccMap).find(([,v]) => v === paramName);
+  document.getElementById('ctx-midi-learn').textContent =
+    cc ? `🎹 CC${cc[0]} \u2014 click to clear` : '🎹 MIDI Learn';
+  midiLearnArmed = false;
+  document.getElementById('ctx-lfo-panel').style.display = 'none';
+  const lfo = lfoSlots[paramName];
+  if (lfo) {
+    document.getElementById('ctx-lfo-rate').value  = lfo.rate;
+    document.getElementById('ctx-lfo-depth').value = lfo.depth;
+  }
+  const m = document.getElementById('ctx-menu');
+  m.style.display = 'block';
+  const mw = m.offsetWidth  || 168;
+  const mh = m.offsetHeight || 160;
+  m.style.left = Math.min(e.clientX, window.innerWidth  - mw - 8) + 'px';
+  m.style.top  = Math.min(e.clientY, window.innerHeight - mh - 8) + 'px';
+}
+
+function hideCtxMenu() {
+  document.getElementById('ctx-menu').style.display = 'none';
+  ctxParam = null;
+  midiLearnArmed = false;
+}
+
+// Right-click delegation on the right panel
+document.getElementById('panel').addEventListener('contextmenu', e => {
+  const el = e.target.closest('[data-param]');
+  if (!el) return;
+  showCtxMenu(e, el.dataset.param);
+});
+
+// Close on outside mousedown
+document.addEventListener('mousedown', e => {
+  const m = document.getElementById('ctx-menu');
+  if (m.style.display !== 'none' && !m.contains(e.target)) hideCtxMenu();
+});
+
+// Escape closes menu
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') hideCtxMenu();
+}, true);
+
+// MIDI Learn button
+document.getElementById('ctx-midi-learn').addEventListener('click', () => {
+  if (!ctxParam) return;
+  const existing = Object.entries(ccMap).find(([,v]) => v === ctxParam);
+  if (existing) {
+    delete ccMap[existing[0]];
+    document.getElementById('ctx-midi-learn').textContent = '🎹 MIDI Learn';
+    hideCtxMenu();
+    return;
+  }
+  midiLearnArmed = true;
+  document.getElementById('ctx-midi-learn').textContent = '🎹 Move a CC knob\u2026';
+});
+
+// LFO assign — toggle panel
+document.getElementById('ctx-lfo-assign').addEventListener('click', () => {
+  const p = document.getElementById('ctx-lfo-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+});
+
+// LFO apply
+document.getElementById('ctx-lfo-ok').addEventListener('click', () => {
+  if (!ctxParam) return;
+  lfoSlots[ctxParam] = {
+    rate:  parseFloat(document.getElementById('ctx-lfo-rate').value),
+    depth: parseFloat(document.getElementById('ctx-lfo-depth').value),
+    phase: lfoSlots[ctxParam] ? lfoSlots[ctxParam].phase : 0
+  };
+  hideCtxMenu();
+});
+
+// LFO clear
+document.getElementById('ctx-lfo-clear').addEventListener('click', () => {
+  if (ctxParam) delete lfoSlots[ctxParam];
+  hideCtxMenu();
+});
+
 // Hover tooltips
 const tipEl = document.getElementById('tip');
 document.querySelectorAll('[data-tip]').forEach(el => {
@@ -2648,5 +2780,22 @@ document.querySelectorAll('[data-tip]').forEach(el => {
   el.addEventListener('mouseleave', () => { tipEl.style.opacity = '0'; });
 });
 </script>
+<div id="ctx-menu" style="display:none;position:fixed;z-index:9999;background:#18181c;border:1px solid #2a2a2a;border-radius:4px;font-family:var(--mono);font-size:11px;color:#ccc;min-width:164px;box-shadow:0 4px 20px rgba(0,0,0,0.7)">
+  <div id="ctx-label" style="padding:6px 10px 4px;color:#e8c840;font-size:10px;border-bottom:1px solid #222;letter-spacing:0.05em"></div>
+  <div id="ctx-midi-learn" style="padding:7px 10px;cursor:pointer;user-select:none">🎹 MIDI Learn</div>
+  <div id="ctx-lfo-assign" style="padding:7px 10px;cursor:pointer;user-select:none">∿ Assign LFO</div>
+  <div id="ctx-lfo-panel" style="display:none;padding:4px 10px 8px;border-top:1px solid #222">
+    <div style="margin:4px 0 2px;font-size:10px;color:#888">Rate
+      <input type="range" id="ctx-lfo-rate" min="0" max="1" step="0.01" value="0.2" style="width:100%;margin-top:2px">
+    </div>
+    <div style="margin:4px 0 2px;font-size:10px;color:#888">Depth
+      <input type="range" id="ctx-lfo-depth" min="0" max="1" step="0.01" value="0.3" style="width:100%;margin-top:2px">
+    </div>
+    <div style="display:flex;gap:4px;margin-top:6px">
+      <button id="ctx-lfo-ok" style="flex:1;padding:4px;background:rgba(40,80,160,0.18);border:0.5px solid rgba(80,120,220,0.3);border-radius:4px;color:rgba(140,170,240,0.9);font-family:var(--mono);font-size:10px;cursor:pointer">Apply</button>
+      <button id="ctx-lfo-clear" style="flex:1;padding:4px;background:rgba(40,80,160,0.08);border:0.5px solid rgba(80,120,220,0.2);border-radius:4px;color:rgba(140,170,240,0.5);font-family:var(--mono);font-size:10px;cursor:pointer">Clear</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
