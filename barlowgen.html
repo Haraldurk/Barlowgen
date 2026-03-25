@@ -134,6 +134,13 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
   border: 0.5px solid transparent; border-radius: 3px; transition: all 0.15s; line-height: 1;
 }
 .sec-hdr .sec-detach:hover { color: rgba(200,205,220,0.75); border-color: rgba(140,145,170,0.3); }
+.sec-hdr .sec-rand {
+  font-size: 12px; color: rgba(160,165,190,0.45); cursor: pointer;
+  padding: 1px 4px; margin: 0 2px; line-height: 1; transition: color 0.15s;
+}
+.sec-rand.inline {
+  font-size: 11px; color: rgba(160,165,190,0.45); cursor: pointer; transition: color 0.15s;
+}
 #collapse-all:hover { color: rgba(230,232,240,0.9) !important; }
 
 .sec-body { display: none; padding: 10px 14px 14px; }
@@ -201,6 +208,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <span class="sec-title">Rhythm</span>
     <span class="sec-help" data-tip="Metric stratification — prime factors define pulse hierarchy. Metricity weights how strongly indispensability gates note probability."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
     <div class="sec-tooltip"></div>
+    <span class="sec-rand" data-sec="rhythm" title="randomize rhythm">⚄</span>
     <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('rhythm')">&#10530;</span>
   </div>
   <div id="body-rhythm" class="sec-body open">
@@ -228,6 +236,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <span class="sec-title">Harmony</span>
     <span class="sec-help" data-tip="Just intonation pitch field. Tonality weights selection by harmonicity H(P:Q). Directional scales use separate ascending/descending forms."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
     <div class="sec-tooltip"></div>
+    <span class="sec-rand" data-sec="harmony" title="randomize harmony">⚄</span>
     <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('harmony')">&#10530;</span>
   </div>
   <div id="body-harmony" class="sec-body open">
@@ -300,6 +309,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <span class="sec-title">Voices</span>
     <span class="sec-help" data-tip="Three independent generative streams sharing master BPM. Each has its own stratification, scale, tonic, octave range, ambitus, density, waveform, and MIDI channel. All voice settings are saved in presets."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
     <div class="sec-tooltip"></div>
+    <span class="sec-rand" data-sec="voices" title="randomize voices">⚄</span>
     <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('voices')">&#10530;</span>
   </div>
   <div id="body-voices" class="sec-body">
@@ -506,6 +516,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <span class="sec-title">Timbre</span>
     <span class="sec-help" data-tip="Waveform, dynamics, and expressiveness. Swing, rest clustering, echo probability, and drift shape the musical personality."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
     <div class="sec-tooltip"></div>
+    <span class="sec-rand" data-sec="timbre" title="randomize timbre">⚄</span>
     <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('timbre')">&#10530;</span>
   </div>
   <div id="body-timbre" class="sec-body">
@@ -533,9 +544,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
       <div class="lbl"><span>bass vel</span><span id="bsv">0.50</span></div>
       <input type="range" id="bassVel" min="0" max="1" step="0.01" value="0.5">
     </div>
+    <div style="text-align:right;margin-bottom:4px"><span class="sec-rand inline" data-sec="expression" title="randomize expression">⚄ expression</span></div>
     <div class="row"><div class="lbl"><span>swing</span><span id="swing-v">0.00</span></div><input type="range" id="swing" min="0" max="1" step="0.01" value="0"></div>
     <div class="row"><div class="lbl"><span>rest cluster</span><span id="restCluster-v">0.00</span></div><input type="range" id="restCluster" min="0" max="1" step="0.01" value="0"></div>
     <div class="row"><div class="lbl"><span>echo prob</span><span id="echoProbability-v">0.00</span></div><input type="range" id="echoProbability" min="0" max="1" step="0.01" value="0"></div>
+    <div style="text-align:right;margin:6px 0 4px"><span class="sec-rand inline" data-sec="drift" title="randomize drift">⚄ drift</span></div>
     <div class="row"><div class="lbl"><span>drift rate</span><span id="driftRate-v">0.00</span></div><input type="range" id="driftRate" min="0" max="1" step="0.01" value="0"></div>
     <div class="row"><div class="lbl"><span>drift depth</span><span id="driftDepth-v">0.50</span></div><input type="range" id="driftDepth" min="0" max="1" step="0.01" value="0.5"></div>
   </div>
@@ -860,6 +873,7 @@ const SCALES = {
     avaroha: [[1,1],[9,8],[5,4],[45,32],[5,3],[16,15]]
   }
 };
+window.SCALES = SCALES;
 
 function buildNotes(scaleName, tonic, octave, ambitus) {
   tonic = tonic || 'A'; octave = +octave || 3; ambitus = +ambitus || 2;
@@ -1947,37 +1961,80 @@ function drawProbViz() {
 }
 
 // ── Constrained randomize ──────────────────────────────────
-function doRandomize() {
+function randomizeRhythm() {
   const STRATS = [[2,2],[3,2],[2,3],[2,2,2],[3,3],[5,2],[2,5],[7],[5,3],[3,2,2],[2,2,3]];
-  const SCALE_KEYS = ['major','minor','pentatonic','pythagorean','dorian_mode',
-    'yaman','bhairavi','kafi','todi','doubleHarmonic','phrygianDom','lydianDom',
-    'hirajoshi','hungarianMinor','octatonic'];
-  const validScales = SCALE_KEYS.filter(k => SCALES[k]);
-  const TONICS = ['A','A#','B','C','C#','D','D#','E','F','F#','G','G#'];
-  const WAVES = ['triangle','triangle','triangle','sine','saw'];
+  P.strat = STRATS[Math.floor(Math.random() * STRATS.length)];
+  P.metricity = 0.15 + Math.random() * 0.75;
+  P.density = 0.35 + Math.random() * 0.65;
+  P.rotation = Math.random() < 0.3 ? Math.random() : 0;
+  document.getElementById('strat').value = P.strat.join(' ');
+  syncUI(); rebuildState(); randomBurst = 1;
+}
 
-  let metricity = 0.15 + Math.random() * 0.75;
-  let tonality  = 0.20 + Math.random() * 0.75;
-  if (metricity < 0.25 && tonality < 0.25) { metricity += 0.30; tonality += 0.30; }
+function randomizeHarmony() {
+  const SCALES = Object.keys(window.SCALES || {}).filter(k => !k.includes('custom'));
+  const TONICS = ['A','Bb','B','C','C#','D','Eb','E','F','F#','G','Ab'];
+  P.scale = SCALES[Math.floor(Math.random() * SCALES.length)];
+  P.tonic = TONICS[Math.floor(Math.random() * TONICS.length)];
+  P.tonality = 0.20 + Math.random() * 0.75;
+  P.complexity = 0.4 + Math.random() * 0.6;
+  P.tonicShift = Math.random() < 0.2 ? (Math.floor(Math.random() * 7) - 3) : 0;
+  syncUI(); rebuildState(); randomBurst = 1;
+}
 
-  const gateMin = 0.05 + Math.random() * 0.25;
-  const gateMax = Math.min(0.98, gateMin + 0.30 + Math.random() * 0.60);
+function randomizeTimbre() {
+  const WAVES = ['triangle','triangle','sine','saw'];
+  P.wave = WAVES[Math.floor(Math.random() * WAVES.length)];
+  const gMin = 0.08 + Math.random() * 0.27;
+  const gMax = gMin + 0.3 + Math.random() * 0.55;
+  P.gateMin = gMin; P.gateMax = Math.min(gMax, 0.98);
+  P.jitter = Math.random() * 0.4;
+  P.bassVel = 0.3 + Math.random() * 0.7;
+  syncUI(); rebuildState(); randomBurst = 1;
+}
 
-  P.strat      = STRATS[Math.floor(Math.random() * STRATS.length)];
-  P.metricity  = Math.min(0.90, metricity);
-  P.tonality   = Math.min(0.95, tonality);
-  P.density    = 0.35 + Math.random() * 0.65;
-  P.scale      = validScales[Math.floor(Math.random() * validScales.length)];
-  P.tonic      = TONICS[Math.floor(Math.random() * TONICS.length)];
-  P.octave     = 2 + Math.floor(Math.random() * 3);
-  P.wave       = WAVES[Math.floor(Math.random() * WAVES.length)];
-  P.gateMin    = gateMin;
-  P.gateMax    = gateMax;
-  P.swing      = Math.random() * 0.55;
+function randomizeExpression() {
+  P.swing = Math.random() * 0.55;
+  P.restCluster = Math.random() * 0.6;
+  P.echoProbability = Math.random() * 0.5;
+  if (P.swing > 0.4 && P.restCluster > 0.4 && P.echoProbability > 0.3) {
+    P.echoProbability *= 0.4;
+  }
+  P.velocityDepth = 0.2 + Math.random() * 0.8;
+  syncUI(); rebuildState(); randomBurst = 1;
+}
 
-  syncUI(); rebuildState();
-  if (playing) { stopEngine(); startEngine(); }
-  randomBurst = 1.0;
+function randomizeDrift() {
+  P.driftRate = Math.random();
+  P.driftDepth = P.driftRate > 0.6 ? 0.1 + Math.random() * 0.4 : 0.2 + Math.random() * 0.7;
+  P.synnefism = Math.random() * 0.6;
+  syncUI(); rebuildState(); randomBurst = 1;
+}
+
+function randomizeVoices() {
+  const STRATS = [[2,2],[3,2],[2,3],[2,2,2],[3,3],[5,2],[7]];
+  const SCALES = Object.keys(window.SCALES || {}).filter(k => !k.includes('custom'));
+  [voiceExts[0], voiceExts[1]].forEach((ve) => {
+    if (!ve) return;
+    ve.params.strat = STRATS[Math.floor(Math.random() * STRATS.length)];
+    ve.params.scale = SCALES[Math.floor(Math.random() * SCALES.length)];
+    ve.params.metricity = 0.2 + Math.random() * 0.7;
+    ve.params.tonality = 0.2 + Math.random() * 0.75;
+    ve.params.density = 0.4 + Math.random() * 0.6;
+    rebuildVoiceState(ve);
+  });
+  syncVoiceUI(); randomBurst = 1;
+}
+
+function doRandomize() {
+  randomizeRhythm();
+  randomizeHarmony();
+  randomizeTimbre();
+  randomizeExpression();
+  randomizeDrift();
+  // Constraint: metricity and tonality not both below 0.25
+  if (P.metricity < 0.25 && P.tonality < 0.25) P.tonality = 0.25;
+  syncUI(); rebuildState(); randomBurst = 1;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2291,6 +2348,21 @@ if (navigator.requestMIDIAccess) {
   }).catch(() => {});
 }
 requestAnimationFrame(frame);
+// Section randomizers
+document.querySelectorAll('.sec-rand').forEach(btn => {
+  btn.addEventListener('mouseenter', () => btn.style.color = 'rgba(232,200,64,0.85)');
+  btn.addEventListener('mouseleave', () => btn.style.color = 'rgba(160,165,190,0.45)');
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const sec = btn.dataset.sec;
+    if (sec === 'rhythm')         randomizeRhythm();
+    else if (sec === 'harmony')   randomizeHarmony();
+    else if (sec === 'timbre')    randomizeTimbre();
+    else if (sec === 'voices')    randomizeVoices();
+    else if (sec === 'expression') randomizeExpression();
+    else if (sec === 'drift')     randomizeDrift();
+  });
+});
 // Hover tooltips
 const tipEl = document.getElementById('tip');
 document.querySelectorAll('[data-tip]').forEach(el => {
