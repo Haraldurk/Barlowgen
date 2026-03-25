@@ -59,8 +59,8 @@ qualitative musical traits are quantified and modulated in real-time.
 - Left-click = load (A), right-click = set morph target (B)
 - Manual morph fader: real-time A↔B interpolation
 - Timed morph: startTimedMorph(secs) animates fader, continues from current pos
-- applyMorph(): interpolates 19 numeric params, snaps discrete at t>0.5
-- Note: V2/V3 params not yet interpolated by morph (V1 only)
+- applyMorph(): interpolates 19 numeric V1 params + 10 numeric V2/V3 params, snaps discrete at t>0.5
+- V2/V3 params fully interpolated: 10 numeric keys, 4 discrete snap at t>0.5, strat array snapped
 
 ### Score Automation
 - Breakpoint syntax: "0:0.65 30:0.9 60:0.3" (time in seconds)
@@ -82,4 +82,4 @@ qualitative musical traits are quantified and modulated in real-time.
 - Preset name flash in status bar on load (3s, auto-revert)
 
 ## What Still Needs Building
-- V2/V3 params in timed morph (currently V1 only)
+Original roadmap complete as of 2026-03-25.

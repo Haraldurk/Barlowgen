@@ -59,9 +59,9 @@ stays in panel with gold dot indicator. Click header to bring float to front.
 - ✓ Right-click context menu: MIDI learn (range-aware CC→param mapping via onMidiMessage(), wired to all inputs via populateMidiDevices()), LFO assign per slider (sinusoidal, 3–300s period, non-destructive state write). 18 V1 sliders have data-param attributes.
 - ✓ Bass shadow voice MIDI output: freqToMidi(bn.freq/2) matched to WebAudio bass, vel = round(bassVel×64) clamped 1–80, guarded by P.bassVel > 0 && voiceIdx === 0 && midiOut. Fires at same tFire and bassDur as WebAudio event.
 - ✓ Preset name in status bar: #sb-title shows slot name for 3s on load, reverts to "barlowgen". clearTimeout on element prevents stacking on rapid switches. Fallback to P1…P8 if name is blank.
+- ✓ V2/V3 params in timed morph: applyMorph() now interpolates 10 numeric keys (metricity, tonality, density, gate, gateMin, gateMax, octave, ambitus, velocityMin, velocityMax) and snaps discrete keys (scale, tonic, wave, midiChan, enabled) at t>0.5. strat array snapped separately. rebuildVoiceState(ve) + syncVoiceUI() called per morph tick.
 
-## What still needs building
-- V2/V3 params in timed morph (currently only V1 interpolated)
+## What still needs building: nothing on the original roadmap. Engine is feature-complete as of v1.2.
 
 ## Rules
 - NEVER rewrite the whole file
