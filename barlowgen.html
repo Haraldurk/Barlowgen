@@ -803,7 +803,7 @@ const vQueue = []; // visual events keyed to audio time
 // ── New feature state ────────────────────────────────────────
 let lastFireTime = 0, lastFireNH = 0;
 let driftPhase = 0, resonancePhase = 0, resonating = false;
-let probVizVisible = false, randomBurst = 0;
+let probVizVisible = false, probVizOn = false, randomBurst = 0;
 const phraseLoop = { active: false, len: 8, buf: [], pos: 0 };
 
 function weightedPick(notes, normRank, tonality, lastFreq) {
@@ -859,6 +859,7 @@ function firePulse(idx, t, S, voiceIdx) {
       const dur = S.pulseDur * gate * (1.4 + 1.2 * nr);
       playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan, nr);
       vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false, vi: voiceIdx });
+      if (voiceIdx === 0) { lastFireTime = tFire; lastFireNH = note.nh || 0.5; }
     }
   }
 
@@ -1279,7 +1280,7 @@ let W, H, CX, CY;
 function resize() {
   W = cv.width = window.innerWidth;
   H = cv.height = window.innerHeight;
-  CX = (W - 280) / 2; CY = H / 2;
+  CX = W / 2; CY = H / 2;
 }
 window.addEventListener('resize', resize);
 resize();
@@ -1390,6 +1391,11 @@ function frame(ts) {
   const dt = Math.min((ts - last) / 1000, 0.05);
   last = ts;
 
+  if (playing && AC) {
+    resonating = (AC.currentTime - lastFireTime) > 1.5;
+  }
+  if (resonating) resonancePhase += dt * 0.4;
+
   // Drain visual event queue at audio time
   if (playing && AC) {
     const now = AC.currentTime;
@@ -1434,6 +1440,7 @@ function frame(ts) {
   ripples.forEach(r => r.draw());
   particles.forEach(p => p.draw());
   drawCenter();
+  if (probVizOn) drawProbViz();
 }
 
 // Subtle harmonic web between young particles
@@ -1828,6 +1835,7 @@ document.addEventListener('keydown', e => {
     if (e.shiftKey) savePreset(idx);
     else loadPreset(idx);
   }
+  if (e.key === 'v' || e.key === 'V') { probVizOn = !probVizOn; }
 });
 
 [['v2', 0], ['v3', 1]].forEach(([pfx, vi]) => {
