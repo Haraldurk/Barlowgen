@@ -1364,6 +1364,12 @@ function loadPreset(idx) {
   applyState(presets[idx].data);
   activeIdx = idx;
   renderPresets();
+  const titleEl = document.getElementById('sb-title');
+  if (titleEl) {
+    clearTimeout(titleEl._nameTimer);
+    titleEl.textContent = presets[idx].name || ('P' + (idx + 1));
+    titleEl._nameTimer = setTimeout(() => { titleEl.textContent = 'barlowgen'; }, 3000);
+  }
 }
 
 function applyMorph(t) {
