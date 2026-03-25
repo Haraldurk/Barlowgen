@@ -1212,7 +1212,9 @@ const scoreAuto = {
   startTime: 0,
   params: {
     metricity:[], tonality:[], density:[],
-    bpm:[], tonicShift:[], morph:[]
+    bpm:[], tonicShift:[], morph:[],
+    swing:[], restCluster:[], driftRate:[],
+    gateMin:[], gateMax:[], velocityMax:[]
   }
 };
 
@@ -1257,6 +1259,12 @@ function tickScore() {
   });
   ap('tonicShift', v => { P.tonicShift = v; state.tonicMult = Math.pow(2, v/12); });
   ap('morph', v => { if (morphBIdx >= 0) applyMorph(v); });
+  ap('swing',       v => { P.swing = v; state.swing = v; });
+  ap('restCluster', v => { P.restCluster = v; state.restCluster = v; });
+  ap('driftRate',   v => { P.driftRate = v; state.driftRate = v; });
+  ap('gateMin',     v => { P.gateMin = v; state.gateMin = v; });
+  ap('gateMax',     v => { P.gateMax = v; state.gateMax = v; });
+  ap('velocityMax', v => { P.velocityMax = v; });
 }
 
 function rebuildState() {
@@ -1807,7 +1815,8 @@ if (scRunBtn) scRunBtn.addEventListener('click', () => {
     scoreAuto.running = false;
     if (scRunBtn) { scRunBtn.textContent = '▶ run'; scRunBtn.classList.remove('on'); }
   } else {
-    ['metricity','tonality','density','bpm','tonicShift','morph'].forEach(k => {
+    ['metricity','tonality','density','bpm','tonicShift','morph',
+     'swing','restCluster','driftRate','gateMin','gateMax','velocityMax'].forEach(k => {
       const el = document.getElementById('sc-' + k);
       scoreAuto.params[k] = el ? parseBreakpoints(el.value) : [];
     });
