@@ -1121,7 +1121,14 @@ function firePulse(idx, t, S, voiceIdx) {
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
       // Bass also follows curved rank velocity
-      playNote(bn.freq / 2, S.pulseDur * 2.0, P.bassVel * 0.12, tFire, 'sine', true, null);
+      const bassDur = S.pulseDur * 2.0;
+      playNote(bn.freq / 2, bassDur, P.bassVel * 0.12, tFire, 'sine', true, null);
+      if (voiceIdx === 0 && midiOut) {
+        const bmn = Math.max(0, Math.min(127, freqToMidi(bn.freq / 2)));
+        const bvel = Math.max(1, Math.min(80, Math.round(P.bassVel * 64)));
+        midiNoteOn(bmn, bvel, P.midiChan, tFire);
+        midiNoteOff(bmn, P.midiChan, tFire + bassDur);
+      }
       vQueue.push({ idx, t: tFire, nh: bn.nh, nr: nr * 0.65, bass: true, vi: voiceIdx });
     }
   }
