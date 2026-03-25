@@ -1420,9 +1420,17 @@ function freqToMidi(freq) {
 }
 
 function toggleSec(hdr) {
+  const name = hdr.id.replace('hdr-', '');
+  const dp = document.getElementById('detached-' + name);
+  if (dp) {
+    // section is floating — bring its panel to front
+    document.querySelectorAll('.detached-panel').forEach(p => p.style.zIndex = '500');
+    dp.style.zIndex = '501';
+    return;
+  }
   hdr.classList.toggle('open');
   const body = hdr.nextElementSibling;
-  if (body) body.classList.toggle('open');
+  if (body && body.classList.contains('sec-body')) body.classList.toggle('open');
 }
 
 function toggleAllSections() {
@@ -1439,30 +1447,31 @@ function detachSec(name) {
   if (!body || !hdr || document.getElementById('detached-' + name)) return;
   const title = hdr.querySelector('.sec-title').textContent;
 
+  // remember where body lives so reattach can restore it exactly
+  const origParent = body.parentElement;
+  const origNext = body.nextElementSibling;
+
   const count = document.querySelectorAll('.detached-panel').length;
   const dp = document.createElement('div');
   dp.className = 'detached-panel';
   dp.id = 'detached-' + name;
   dp.style.right = (320 + count * 30) + 'px';
   dp.style.top = (60 + count * 30) + 'px';
+  dp.dataset.origParentId = origParent.id;
+  dp._origNext = origNext;
 
   const dhdr = document.createElement('div');
   dhdr.className = 'detached-hdr';
   dhdr.onmousedown = (e) => startDrag(e, dp);
   dhdr.innerHTML = `<span>${title}</span><span class="detached-close" onclick="reattachSec('${name}')">&times;</span>`;
 
-  const dbody = document.createElement('div');
-  dbody.className = 'detached-body';
-  while (body.firstChild) dbody.appendChild(body.firstChild);
-
+  // move the actual body element into the float; make it visible
+  body.style.display = 'block';
   dp.appendChild(dhdr);
-  dp.appendChild(dbody);
+  dp.appendChild(body);
   document.body.appendChild(dp);
 
-  hdr.style.display = 'none';
-  body.style.display = 'none';
-
-  // indicator dot + icon toggle in panel header
+  // header stays visible in panel (collapsed state) — just show indicator + toggle icon
   const dot = document.createElement('span');
   dot.className = 'sec-detached-indicator';
   dot.id = 'dot-' + name;
@@ -1473,14 +1482,20 @@ function detachSec(name) {
 
 function reattachSec(name) {
   const dp = document.getElementById('detached-' + name);
-  const body = document.getElementById('body-' + name);
   const hdr = document.getElementById('hdr-' + name);
-  if (!dp || !body || !hdr) return;
-  const dbody = dp.querySelector('.detached-body');
-  while (dbody.firstChild) body.appendChild(dbody.firstChild);
-  document.body.removeChild(dp);
-  hdr.style.display = 'flex';
+  if (!dp || !hdr) return;
+  const body = document.getElementById('body-' + name);
+  if (!body) return;
+
+  // restore body to its original position in the panel
+  const origParent = document.getElementById(dp.dataset.origParentId);
+  if (origParent) {
+    origParent.insertBefore(body, dp._origNext || null);
+  } else {
+    hdr.after(body);
+  }
   body.style.display = '';
+  document.body.removeChild(dp);
 
   // remove indicator dot + restore icon
   const dot = document.getElementById('dot-' + name);
