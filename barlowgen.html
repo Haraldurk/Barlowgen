@@ -167,13 +167,15 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 }
 
 .pslot {
-  width: 22px; height: 20px;
+  width: 46px; height: 34px;
   background: rgba(255,255,255,0.02);
   border: 0.5px solid rgba(80,100,160,0.2);
   border-radius: 3px; color: #303060;
   font-size: 9px; font-family: var(--mono);
   cursor: pointer; transition: all 0.12s;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 2px 3px; overflow: hidden;
 }
 .pslot:hover { color: #6070b0; border-color: rgba(80,100,160,0.5); }
 .pslot.saved { border-color: rgba(80,100,200,0.45); color: #5060a0; }
@@ -704,6 +706,9 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 <div id="state-bar">
   <button id="p-add">+</button>
   <div id="pslots-wrap" style="display:flex;gap:3px;flex-wrap:wrap" data-tip="Preset slots — click + to save current state. Left-click to load (A). Right-click to set as morph target (B). Stores V1, V2, V3 parameters."></div>
+  <button id="btn-export-preset" title="Export active preset as .barlo file" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬇P</button>
+  <button id="btn-import-preset" title="Import preset from .barlo file into active slot" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬆P</button>
+  <input type="file" id="input-import-preset" accept=".barlo,.json" style="display:none">
   <div id="morph-row" class="hidden">
     <span data-tip="Drag to interpolate between preset A (left-click active) and preset B (right-click active). All numeric parameters blend continuously; scale/tonic snap at midpoint.">A</span><input type="range" id="morph-fader" min="0" max="1" step="0.001" value="0">B
     <span style="color:rgba(160,165,190,0.6);font-size:10px;margin-left:8px">fade</span><span class="sec-help" data-tip="Timed morph: set duration in seconds then press ▶ to animate the fader from its current position to B over that time."><svg width="11" height="11" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
@@ -1433,7 +1438,11 @@ function renderPresets() {
   presets.forEach((p, i) => {
     const slot = document.createElement('div');
     slot.className = 'pslot' + (p.data ? ' saved' : '') + (i === activeIdx ? ' active' : '') + (i === morphBIdx ? ' morph-b' : '');
-    slot.textContent = i + 1;
+    const label = p.name ? p.name.slice(0, 8) : '';
+    slot.innerHTML = `<span style="font-size:8px;opacity:0.45;line-height:1.2;display:block">${i+1}</span>`
+      + `<span style="font-size:8px;color:#e8c840;line-height:1.2;display:block;`
+      + `overflow:hidden;white-space:nowrap;max-width:42px;text-overflow:ellipsis;`
+      + `opacity:${label ? '1' : '0'}">${label || '.'}</span>`;
     slot.title = p.name || ('P'+(i+1));
     slot.addEventListener('click', e => {
       if (e.shiftKey) {
@@ -2703,6 +2712,52 @@ function loadSession(file) {
   };
   reader.readAsText(file);
 }
+
+function exportPreset() {
+  if (activeIdx < 0 || !presets[activeIdx] || !presets[activeIdx].data) {
+    const st = document.getElementById('session-status');
+    if (st) st.textContent = 'No active preset to export';
+    return;
+  }
+  const slot = presets[activeIdx];
+  const data = {
+    barlowgen: '1.2',
+    type: 'preset',
+    savedAt: new Date().toISOString(),
+    preset: slot
+  };
+  const name = (slot.name || 'preset').replace(/\s+/g, '-').toLowerCase();
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'barlowgen-' + name + '.barlo';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importPreset(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    let data;
+    try { data = JSON.parse(e.target.result); } catch { return; }
+    if (!data.preset) return;
+    const idx = activeIdx >= 0 ? activeIdx : 0;
+    presets[idx] = data.preset;
+    savePresets();
+    loadPreset(idx);
+    renderPresets();
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('btn-export-preset').addEventListener('click', exportPreset);
+document.getElementById('btn-import-preset').addEventListener('click', () => {
+  document.getElementById('input-import-preset').click();
+});
+document.getElementById('input-import-preset').addEventListener('change', e => {
+  if (e.target.files[0]) importPreset(e.target.files[0]);
+  e.target.value = '';
+});
 
 document.getElementById('btn-save-session').addEventListener('click', saveSession);
 document.getElementById('btn-load-session').addEventListener('click', () => {
