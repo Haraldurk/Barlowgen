@@ -189,6 +189,9 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 
 <div id="status-bar">
   <button id="play-btn">&#9654; start</button>
+  <button id="master-rand"
+    data-tip="Master Barlowian randomizer. Calls all six directed randomizers simultaneously — rhythm, harmony, timbre, expression, drift, voices. Constraint: metricity and tonality never both below 0.25.&#10;Prime-weighted stratification. R key also triggers this."
+    style="background:rgba(232,200,64,0.08);border:1px solid rgba(232,200,64,0.28);color:rgba(232,200,64,0.6);font-family:'IBM Plex Mono',monospace;font-size:14px;padding:2px 9px;border-radius:4px;cursor:pointer;transition:all 0.15s;margin-left:6px">⚄</button>
   <button id="collapse-all" title="Collapse all sections"
     style="padding:3px 8px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:rgba(180,185,210,0.6);font-family:var(--mono);font-size:14px;cursor:pointer;margin-left:4px;transition:color 0.15s"
     onclick="toggleAllSections()">&#8863;</button>
@@ -2402,6 +2405,13 @@ if (stratRandBtn) {
   });
   stratRandBtn.addEventListener('mouseenter', () => stratRandBtn.style.color = 'rgba(232,200,64,0.95)');
   stratRandBtn.addEventListener('mouseleave', () => stratRandBtn.style.color = 'rgba(232,200,64,0.6)');
+}
+// Master randomizer button
+const masterRandBtn = document.getElementById('master-rand');
+if (masterRandBtn) {
+  masterRandBtn.addEventListener('click', () => doRandomize());
+  masterRandBtn.addEventListener('mouseenter', e => e.target.style.color = 'rgba(232,200,64,0.95)');
+  masterRandBtn.addEventListener('mouseleave', e => e.target.style.color = 'rgba(232,200,64,0.6)');
 }
 // Section randomizers
 document.querySelectorAll('.sec-rand').forEach(btn => {
