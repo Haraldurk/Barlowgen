@@ -57,10 +57,13 @@ qualitative musical traits are quantified and modulated in real-time.
 ### Presets & Morph
 - 8 preset slots: captureState() saves {v1, v2, v3}
 - Left-click = load (A), right-click = set morph target (B)
+- Preset buttons show slot number + name (truncated at 8 chars, gold)
+- Individual preset export/import via .barlo files (⬇P/⬆P in state bar)
 - Manual morph fader: real-time A↔B interpolation
 - Timed morph: startTimedMorph(secs) animates fader, continues from current pos
 - applyMorph(): interpolates 19 numeric V1 params + 10 numeric V2/V3 params, snaps discrete at t>0.5
 - V2/V3 params fully interpolated: 10 numeric keys, 4 discrete snap at t>0.5, strat array snapped
+- Session files use .barlo extension (accepts .barlo and .json for backward compat)
 
 ### Score Automation
 - Breakpoint syntax: "0:0.65 30:0.9 60:0.3" (time in seconds)

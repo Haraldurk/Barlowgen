@@ -60,8 +60,14 @@ stays in panel with gold dot indicator. Click header to bring float to front.
 - ✓ Bass shadow voice MIDI output: freqToMidi(bn.freq/2) matched to WebAudio bass, vel = round(bassVel×64) clamped 1–80, guarded by P.bassVel > 0 && voiceIdx === 0 && midiOut. Fires at same tFire and bassDur as WebAudio event.
 - ✓ Preset name in status bar: #sb-title shows slot name for 3s on load, reverts to "barlowgen". clearTimeout on element prevents stacking on rapid switches. Fallback to P1…P8 if name is blank.
 - ✓ V2/V3 params in timed morph: applyMorph() now interpolates 10 numeric keys (metricity, tonality, density, gate, gateMin, gateMax, octave, ambitus, velocityMin, velocityMax) and snaps discrete keys (scale, tonic, wave, midiChan, enabled) at t>0.5. strat array snapped separately. rebuildVoiceState(ve) + syncVoiceUI() called per morph tick.
+- ✓ Tooltip positioning fixed: mouseenter now sets left/top before first mousemove (was rendering at viewport top-left)
+- ✓ Session files use .barlo extension (accept=".barlo,.json" for backward compat with old .json saves)
+- ✓ Preset buttons show slot number + truncated name (8 chars, gold, ellipsis). .pslot widened to 46px, flex-column layout.
+- ✓ Preset export/import: ⬇P/⬆P buttons in state bar. exportPreset() saves presets[activeIdx] as barlowgen-<name>.barlo. importPreset() reads .barlo/.json into activeIdx, calls savePresets() + loadPreset() + renderPresets().
 
-## What still needs building: nothing on the original roadmap. Engine is feature-complete as of v1.2.
+## What still needs building
+- Rename preset slot inline (double-click to edit name on button)
+- Morph controls layout too tight on smaller screens — consider moving to SCORE section or popover
 
 ## Rules
 - NEVER rewrite the whole file
