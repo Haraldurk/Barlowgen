@@ -250,6 +250,10 @@ select optgroup { background: #080818; color: #303060;
       <div class="lbl"><span>tempo</span><span id="bv">72 bpm</span></div>
       <input type="range" id="bpm" min="30" max="220" step="1" value="72">
     </div>
+    <div class="row">
+      <div class="lbl"><span>rotation</span><span id="lv-rotation">0.00</span></div>
+      <input type="range" id="sl-rotation" min="0" max="1" step="0.01" value="0">
+    </div>
   </div>
 
   <!-- HARMONY -->
@@ -317,6 +321,14 @@ select optgroup { background: #080818; color: #303060;
     <div class="row">
       <div class="lbl"><span>tonality</span><span id="tv">0.70</span></div>
       <input type="range" id="tonality" min="0" max="1" step="0.01" value="0.70">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>tonic shift</span><span id="lv-tonicShift">0.0</span></div>
+      <input type="range" id="sl-tonicShift" min="-12" max="12" step="0.1" value="0">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>synnefism</span><span id="lv-synnefism">0.00</span></div>
+      <input type="range" id="sl-synnefism" min="0" max="1" step="0.01" value="0">
     </div>
   </div>
 
@@ -822,13 +834,21 @@ let driftPhase = 0, resonancePhase = 0, resonating = false;
 let probVizVisible = false, randomBurst = 0;
 const phraseLoop = { active: false, len: 8, buf: [], pos: 0 };
 
-function weightedPick(notes, normRank, tonality) {
+function weightedPick(notes, normRank, tonality, lastFreq) {
   if (!notes.length) return null;
   // Barlow coupling: tonality rises on strong beats
   const lt = tonality * (0.3 + 0.7 * normRank);
   const weights = notes.map(n =>
     lt < 0.001 ? 1 : Math.pow(Math.max(0.005, n.nh), 2.5 * lt)
   );
+
+  if (P.synnefism > 0 && lastFreq) {
+    for (let i = 0; i < notes.length; i++) {
+      const steps = Math.abs(12 * Math.log2(notes[i].freq / lastFreq));
+      weights[i] *= Math.pow(Math.max(0.01, 1 - steps/12), P.synnefism * 4);
+    }
+  }
+
   let r = Math.random() * weights.reduce((a, b) => a + b, 0);
   for (let i = 0; i < notes.length; i++) {
     r -= weights[i]; if (r <= 0) return notes[i];
@@ -851,7 +871,7 @@ function firePulse(idx, t, S, voiceIdx) {
     const noteArr = S.notes.directional
       ? (S.direction >= 0 ? S.notes.aroha : S.notes.avaroha)
       : (S.notes.aroha || S.notes);
-    const note = weightedPick(noteArr, nr, S.tonality);
+    const note = weightedPick(noteArr, nr, S.tonality, S.lastFreq);
     if (note) {
       if (S.lastFreq) {
         if (note.freq > S.lastFreq) S.direction = 1;
@@ -872,7 +892,7 @@ function firePulse(idx, t, S, voiceIdx) {
 
   // Bass on strong pulses (coupled to harmonic field)
   if (nr > 0.68 && P.bassVel > 0 && Math.random() < 0.78) {
-    const bn = weightedPick((S.notes.aroha || S.notes).slice(0, 6), nr, S.tonality);
+    const bn = weightedPick((S.notes.aroha || S.notes).slice(0, 6), nr, S.tonality, S.lastFreq);
     if (bn) {
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
@@ -933,6 +953,9 @@ function stopEngine() {
 const P = {
   strat: [3, 2], metricity: 0.65, tonality: 0.70, density: 1,
   tonic: 'A', octave: 3, ambitus: 2, gate: 0.8,
+  tonicShift: 0,
+  rotation: 0,
+  synnefism: 0,
   jitter: 0,
   bassVel: 0.5,
   midiChan: 1,
@@ -1032,6 +1055,12 @@ function syncUI() {
   document.getElementById('jv').textContent = P.jitter.toFixed(2);
   document.getElementById('bassVel').value = P.bassVel;
   document.getElementById('bsv').textContent = P.bassVel.toFixed(2);
+  document.getElementById('sl-tonicShift').value = P.tonicShift || 0;
+  document.getElementById('lv-tonicShift').textContent = (P.tonicShift||0).toFixed(1);
+  document.getElementById('sl-rotation').value = P.rotation || 0;
+  document.getElementById('lv-rotation').textContent = (P.rotation||0).toFixed(2);
+  document.getElementById('sl-synnefism').value = P.synnefism || 0;
+  document.getElementById('lv-synnefism').textContent = (P.synnefism||0).toFixed(2);
 }
 
 function savePreset(idx) {
@@ -1258,7 +1287,12 @@ function tickScore() {
 
 function rebuildState() {
   const s = P.strat;
-  state.indis = barlowIndis(s);
+  const raw = barlowIndis(s);
+  const Q = raw.length;
+  const offset = Math.round(P.rotation * Q) % Q;
+  state.indis = offset === 0 ? raw : 
+    [...raw.slice(offset), ...raw.slice(0, offset)];
+
   state.notes = buildNotes(P.scale, P.tonic, P.octave, P.ambitus);
   // pulseDur: bpm controls top-level beat; inner factors set subdivision
   const innerQ = s.slice(1).reduce((a, b) => a * b, 1) || 1;
@@ -1284,7 +1318,7 @@ let W, H, CX, CY;
 function resize() {
   W = cv.width = window.innerWidth;
   H = cv.height = window.innerHeight;
-  CX = (W - 252) / 2; CY = H / 2;
+  CX = (W - 280) / 2; CY = H / 2;
 }
 window.addEventListener('resize', resize);
 resize();
@@ -1756,6 +1790,21 @@ document.getElementById('vel-max').addEventListener('input', e => {
   document.getElementById('vlmax').textContent = e.target.value;
 });
 
+document.getElementById('tune-sigma').addEventListener('input', e => {
+  document.getElementById('sv').textContent = e.target.value + '¢';
+});
+document.getElementById('tune-apply').addEventListener('click', () => {
+  const centsStr = document.getElementById('tune-cents').value;
+  const sigma = +document.getElementById('tune-sigma').value;
+  const name = document.getElementById('tune-name').value || 'custom';
+  const cents = centsStr.trim().split(/[\s,]+/).map(Number).filter(n => !isNaN(n));
+  const ratios = cents.map(c => {
+    const res = gaussBellRationalize(c, sigma);
+    return [res.p, res.q];
+  });
+  applyTuning(name, ratios);
+});
+
 document.getElementById('sc-run').addEventListener('click', () => {
   if (scoreAuto.running) {
     scoreAuto.running = false;
@@ -1778,6 +1827,21 @@ document.getElementById('sc-stop').addEventListener('click', () => {
   document.getElementById('sc-run').classList.remove('on');
   document.getElementById('sc-time').textContent = 't = 0s';
 });
+
+  document.getElementById('sl-tonicShift').addEventListener('input', e => {
+    P.tonicShift = +e.target.value;
+    state.tonicMult = Math.pow(2, P.tonicShift / 12);
+    document.getElementById('lv-tonicShift').textContent = P.tonicShift.toFixed(1);
+  });
+  document.getElementById('sl-rotation').addEventListener('input', e => {
+    P.rotation = +e.target.value;
+    document.getElementById('lv-rotation').textContent = P.rotation.toFixed(2);
+    rebuildState();
+  });
+  document.getElementById('sl-synnefism').addEventListener('input', e => {
+    P.synnefism = +e.target.value;
+    document.getElementById('lv-synnefism').textContent = P.synnefism.toFixed(2);
+  });
 
 document.getElementById('p-add').addEventListener('click', () => {
   presets.push({ name: 'P'+(presets.length+1), data: null });
