@@ -400,7 +400,7 @@ select optgroup { background: #080818; color: #303060;
     </div>
     <div class="row">
       <div class="lbl"><span>vel max</span><span id="vlmax">110</span></div>
-      <input type="range" id="vel-max" min="40" max="127" step="1" value="110">
+      <input type="range" id="vel-max" min="40" max="127" step="1" value="127">
     </div>
   </div>
 
@@ -935,14 +935,23 @@ const P = {
   jitter: 0,
   bassVel: 0.5,
   midiChan: 1,
-  velocityMin: 45,
-  velocityMax: 98,
+  velocityMin: 40,
+  velocityMax: 127,
+  gateMin: 0.12, gateMax: 0.92,
+  swing: 0, restCluster: 0,
+  echoProbability: 0, complexity: 1.0,
+  driftRate: 0, driftDepth: 0.5,
   bpm: 72, scale: 'major', wave: 'triangle', volume: 0.5
   };
   const state = {
   indis: [], notes: [], pulseDur: 0.4,
   metricity: 0.65, tonality: 0.70, density: 1, gate: 0.8, wave: 'triangle',
   direction: 1, lastFreq: 440,
+  gateMin: 0.12, gateMax: 0.92,
+  swing: 0, restCluster: 0,
+  echoProbability: 0, complexity: 1.0,
+  driftRate: 0, driftDepth: 0.5,
+  driftBias: 0, lastWasRest: false, lastNote: null, tonicMult: 1
   };
 
 function makeVoiceParams(strat, chan) {
@@ -1267,6 +1276,15 @@ function rebuildState() {
   state.density = P.density;
   state.gate = P.gate;
   state.wave = P.wave;
+  state.gateMin = P.gateMin;
+  state.gateMax = P.gateMax;
+  state.swing = P.swing;
+  state.restCluster = P.restCluster;
+  state.echoProbability = P.echoProbability;
+  state.complexity = P.complexity;
+  state.driftRate = P.driftRate;
+  state.driftDepth = P.driftDepth;
+  state.tonicMult = state.tonicMult ?? 1;
   if (master) master.gain.value = P.volume;
   updateStatus();
 }
