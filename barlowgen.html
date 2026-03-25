@@ -298,9 +298,10 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('voices')">&#10530;</span>
   </div>
   <div id="body-voices" class="sec-body">
+    <div class="sec-label">── voice 2 ──</div>
     <div class="row">
-      <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:#5060a0;cursor:pointer">
-        <input type="checkbox" id="v2-en"> voice 2
+      <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(160,165,190,0.65);cursor:pointer">
+        <input type="checkbox" id="v2-en"> enable
         <span style="color:hsl(138,65%,55%);margin-left:4px">&#9679;</span>
       </label>
     </div>
@@ -316,10 +317,81 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
       <div class="lbl"><span>tonality</span><span id="v2tv">0.50</span></div>
       <input type="range" id="v2-tonality" min="0" max="1" step="0.01" value="0.5">
     </div>
-    <div class="divider"></div>
     <div class="row">
-      <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:#5060a0;cursor:pointer">
-        <input type="checkbox" id="v3-en"> voice 3
+      <div class="lbl"><span>scale</span></div>
+      <select id="v2-scale">
+        <optgroup label="— western">
+          <option value="major">major (just intonation)</option>
+          <option value="minor">minor (just intonation)</option>
+          <option value="pentatonic">pentatonic</option>
+          <option value="pythagorean">pythagorean</option>
+          <option value="chromatic">chromatic (just)</option>
+          <option value="wholetone">whole tone</option>
+        </optgroup>
+        <optgroup label="— modes">
+          <option value="dorian">dorian</option>
+          <option value="phrygian">phrygian</option>
+          <option value="lydian">lydian</option>
+          <option value="mixolydian">mixolydian</option>
+          <option value="phrygianDom">phrygian dominant</option>
+          <option value="lydianDom">lydian dominant</option>
+          <option value="doubleHarmonic">double harmonic</option>
+          <option value="hungarianMinor">hungarian minor</option>
+          <option value="octatonic">octatonic</option>
+        </optgroup>
+        <optgroup label="— directional ↑↓">
+          <option value="melodicMinor">melodic minor ↑↓</option>
+          <option value="kafi">kafi ↑↓</option>
+          <option value="todi">todi ↑↓</option>
+          <option value="marwa">marwa ↑↓</option>
+          <option value="bhimpalasi">bhimpalasi ↑↓</option>
+          <option value="yaman">yaman</option>
+          <option value="bhairavi">bhairavi</option>
+        </optgroup>
+        <optgroup label="— japanese">
+          <option value="hirajoshi">hirajoshi</option>
+          <option value="insen">insen</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>tonic</span></div>
+      <select id="v2-tonic">
+        <option>C</option><option>C#</option><option>D</option><option>D#</option>
+        <option>E</option><option>F</option><option>F#</option><option>G</option>
+        <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>octave</span><span id="v2ov">3</span></div>
+      <input type="range" id="v2-octave" min="1" max="5" step="1" value="3">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>wave</span></div>
+      <select id="v2-wave">
+        <option value="sine">sine</option>
+        <option value="triangle" selected>triangle</option>
+        <option value="sawtooth">sawtooth</option>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>midi ch</span></div>
+      <select id="v2-chan">
+        <option value="1">1</option><option value="2" selected>2</option>
+        <option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option><option value="10">10</option>
+        <option value="11">11</option><option value="12">12</option>
+        <option value="13">13</option><option value="14">14</option>
+        <option value="15">15</option><option value="16">16</option>
+      </select>
+    </div>
+
+    <div class="sec-label" style="margin-top:18px">── voice 3 ──</div>
+    <div class="row">
+      <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(160,165,190,0.65);cursor:pointer">
+        <input type="checkbox" id="v3-en"> enable
         <span style="color:hsl(318,65%,55%);margin-left:4px">&#9679;</span>
       </label>
     </div>
@@ -334,6 +406,76 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <div class="row">
       <div class="lbl"><span>tonality</span><span id="v3tv">0.50</span></div>
       <input type="range" id="v3-tonality" min="0" max="1" step="0.01" value="0.5">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>scale</span></div>
+      <select id="v3-scale">
+        <optgroup label="— western">
+          <option value="major">major (just intonation)</option>
+          <option value="minor">minor (just intonation)</option>
+          <option value="pentatonic">pentatonic</option>
+          <option value="pythagorean">pythagorean</option>
+          <option value="chromatic">chromatic (just)</option>
+          <option value="wholetone">whole tone</option>
+        </optgroup>
+        <optgroup label="— modes">
+          <option value="dorian">dorian</option>
+          <option value="phrygian">phrygian</option>
+          <option value="lydian">lydian</option>
+          <option value="mixolydian">mixolydian</option>
+          <option value="phrygianDom">phrygian dominant</option>
+          <option value="lydianDom">lydian dominant</option>
+          <option value="doubleHarmonic">double harmonic</option>
+          <option value="hungarianMinor">hungarian minor</option>
+          <option value="octatonic">octatonic</option>
+        </optgroup>
+        <optgroup label="— directional ↑↓">
+          <option value="melodicMinor">melodic minor ↑↓</option>
+          <option value="kafi">kafi ↑↓</option>
+          <option value="todi">todi ↑↓</option>
+          <option value="marwa">marwa ↑↓</option>
+          <option value="bhimpalasi">bhimpalasi ↑↓</option>
+          <option value="yaman">yaman</option>
+          <option value="bhairavi">bhairavi</option>
+        </optgroup>
+        <optgroup label="— japanese">
+          <option value="hirajoshi">hirajoshi</option>
+          <option value="insen">insen</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>tonic</span></div>
+      <select id="v3-tonic">
+        <option>C</option><option>C#</option><option>D</option><option>D#</option>
+        <option>E</option><option>F</option><option>F#</option><option>G</option>
+        <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>octave</span><span id="v3ov">3</span></div>
+      <input type="range" id="v3-octave" min="1" max="5" step="1" value="3">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>wave</span></div>
+      <select id="v3-wave">
+        <option value="sine">sine</option>
+        <option value="triangle" selected>triangle</option>
+        <option value="sawtooth">sawtooth</option>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>midi ch</span></div>
+      <select id="v3-chan">
+        <option value="1">1</option><option value="2">2</option>
+        <option value="3" selected>3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option><option value="10">10</option>
+        <option value="11">11</option><option value="12">12</option>
+        <option value="13">13</option><option value="14">14</option>
+        <option value="15">15</option><option value="16">16</option>
+      </select>
     </div>
   </div>
 
@@ -993,9 +1135,10 @@ const P = {
 
 function makeVoiceParams(strat, chan) {
   return {
-    enabled: false, strat: strat, metricity: 0.5, tonality: 0.5,
-    density: 1, scale: 'major', tonic: 'A', octave: 3, ambitus: 2,
-    wave: 'triangle', gate: 0.8, midiChan: chan
+    enabled: false, strat: strat, metricity: 0.5, tonality: 0.65,
+    density: 1.0, scale: 'major', tonic: 'A', octave: 3, ambitus: 2,
+    wave: 'triangle', gate: 0.8, midiChan: chan,
+    gateMin: 0.12, gateMax: 0.92, velocityMin: 40, velocityMax: 127
   };
 }
 function makeVoiceState() {
@@ -1983,6 +2126,23 @@ document.getElementById('phrase-loop-ind')?.addEventListener('click', () => {
     ve.params.tonality = +e.target.value;
     ve.state.tonality = ve.params.tonality;
     document.getElementById(pfx+'tv').textContent = ve.params.tonality.toFixed(2);
+  });
+  document.getElementById(pfx+'-scale').addEventListener('change', e => {
+    ve.params.scale = e.target.value; rebuildVoiceState(ve);
+  });
+  document.getElementById(pfx+'-tonic').addEventListener('change', e => {
+    ve.params.tonic = e.target.value; rebuildVoiceState(ve);
+  });
+  document.getElementById(pfx+'-octave').addEventListener('input', e => {
+    ve.params.octave = +e.target.value;
+    document.getElementById(pfx+'ov').textContent = e.target.value;
+    rebuildVoiceState(ve);
+  });
+  document.getElementById(pfx+'-wave').addEventListener('change', e => {
+    ve.params.wave = e.target.value; ve.state.wave = e.target.value;
+  });
+  document.getElementById(pfx+'-chan').addEventListener('change', e => {
+    ve.params.midiChan = +e.target.value;
   });
 });
 
