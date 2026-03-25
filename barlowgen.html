@@ -1441,6 +1441,7 @@ function frame(ts) {
   particles.forEach(p => p.draw());
   drawCenter();
   if (probVizOn) drawProbViz();
+  if (randomBurst > 0) { drawRandomBurst(); randomBurst = Math.max(0, randomBurst - dt * 2.5); }
 }
 
 // Subtle harmonic web between young particles
@@ -1609,15 +1610,13 @@ function drawProbViz() {
 // ── Randomize burst ────────────────────────────────────────
 function drawRandomBurst() {
   const fade = randomBurst;
-  const r = (1 - fade) * Math.min(W, H) * 0.6;
+  const r = (1 - fade) * Math.min(W, H) * 0.55;
   const gr = cx.createRadialGradient(CX, CY, 0, CX, CY, r);
-  gr.addColorStop(0, `rgba(232,200,64,${fade * 0.4})`);
-  gr.addColorStop(0.3, `rgba(100,180,240,${fade * 0.15})`);
+  gr.addColorStop(0, 'rgba(232,200,64,' + (fade * 0.35).toFixed(3) + ')');
+  gr.addColorStop(0.4, 'rgba(100,160,240,' + (fade * 0.12).toFixed(3) + ')');
   gr.addColorStop(1, 'rgba(0,0,0,0)');
-  cx.beginPath();
-  cx.arc(CX, CY, r, 0, Math.PI * 2);
-  cx.fillStyle = gr;
-  cx.fill();
+  cx.beginPath(); cx.arc(CX, CY, r, 0, Math.PI * 2);
+  cx.fillStyle = gr; cx.fill();
 }
 
 // ── Constrained randomize ──────────────────────────────────
@@ -1651,7 +1650,7 @@ function doRandomize() {
 
   syncUI(); rebuildState();
   if (playing) { stopEngine(); startEngine(); }
-  randomBurst = 1;
+  randomBurst = 1.0;
 }
 
 // ═══════════════════════════════════════════════════════════
