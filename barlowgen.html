@@ -140,19 +140,24 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 .sec-body.open { display: block; }
 
 .detached-panel {
-  position: fixed; background: rgba(6,6,18,0.96); border: 0.5px solid rgba(80,110,200,0.25);
-  border-radius: 10px; backdrop-filter: blur(24px); font-family: var(--mono); font-size: 11px; color: #5060a0;
-  z-index: 100; min-width: 230px; max-width: 270px; box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  position: fixed; background: rgba(8,8,18,0.97); border: 1px solid rgba(100,105,130,0.35);
+  border-radius: 8px; font-family: var(--mono); font-size: 11px; color: rgba(225,228,240,0.85);
+  z-index: 500; min-width: 260px; max-width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); overflow: hidden;
 }
 .detached-hdr {
-  display: flex; justify-content: space-between; align-items: center; padding: 7px 12px;
-  border-bottom: 0.5px solid rgba(80,110,200,0.12); cursor: grab; user-select: none;
-  font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: #404080;
+  display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
+  background: rgba(20,20,32,0.98); border-bottom: 1px solid rgba(100,105,130,0.2);
+  cursor: grab; user-select: none; font-size: 11px; font-weight: 500;
+  letter-spacing: 0.12em; color: #e8c840;
 }
 .detached-hdr:active { cursor: grabbing; }
-.detached-close { color: #303060; font-size: 12px; cursor: pointer; padding: 0 2px; transition: color 0.1s; }
-.detached-close:hover { color: var(--accent); }
+.detached-close { color: rgba(160,165,190,0.5); font-size: 14px; cursor: pointer; padding: 0 4px; line-height: 1; transition: color 0.1s; }
+.detached-close:hover { color: rgba(230,232,240,0.9); }
 .detached-body { padding: 10px 14px 14px; }
+.sec-detached-indicator {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: #e8c840; margin-left: 6px; vertical-align: middle; opacity: 0.7;
+}
 
 .pslot {
   width: 22px; height: 20px;
@@ -1417,46 +1422,65 @@ function toggleAllSections() {
 function detachSec(name) {
   const body = document.getElementById('body-' + name);
   const hdr = document.getElementById('hdr-' + name);
-  if (!body || !hdr) return;
+  if (!body || !hdr || document.getElementById('detached-' + name)) return;
   const title = hdr.querySelector('.sec-title').textContent;
-  
+
+  const count = document.querySelectorAll('.detached-panel').length;
   const dp = document.createElement('div');
   dp.className = 'detached-panel';
   dp.id = 'detached-' + name;
-  dp.style.left = (window.innerWidth - 300) + 'px';
-  dp.style.top = '100px';
-  
+  dp.style.right = (320 + count * 30) + 'px';
+  dp.style.top = (60 + count * 30) + 'px';
+
   const dhdr = document.createElement('div');
   dhdr.className = 'detached-hdr';
   dhdr.onmousedown = (e) => startDrag(e, dp);
   dhdr.innerHTML = `<span>${title}</span><span class="detached-close" onclick="reattachSec('${name}')">&times;</span>`;
-  
+
   const dbody = document.createElement('div');
   dbody.className = 'detached-body';
   while (body.firstChild) dbody.appendChild(body.firstChild);
-  
+
   dp.appendChild(dhdr);
   dp.appendChild(dbody);
   document.body.appendChild(dp);
-  
+
   hdr.style.display = 'none';
   body.style.display = 'none';
+
+  // indicator dot + icon toggle in panel header
+  const dot = document.createElement('span');
+  dot.className = 'sec-detached-indicator';
+  dot.id = 'dot-' + name;
+  hdr.querySelector('.sec-title').after(dot);
+  const detachBtn = hdr.querySelector('.sec-detach');
+  if (detachBtn) detachBtn.innerHTML = '&#10529;';
 }
 
 function reattachSec(name) {
   const dp = document.getElementById('detached-' + name);
   const body = document.getElementById('body-' + name);
   const hdr = document.getElementById('hdr-' + name);
+  if (!dp || !body || !hdr) return;
   const dbody = dp.querySelector('.detached-body');
   while (dbody.firstChild) body.appendChild(dbody.firstChild);
   document.body.removeChild(dp);
   hdr.style.display = 'flex';
   body.style.display = '';
+
+  // remove indicator dot + restore icon
+  const dot = document.getElementById('dot-' + name);
+  if (dot) dot.remove();
+  const detachBtn = hdr.querySelector('.sec-detach');
+  if (detachBtn) detachBtn.innerHTML = '&#10530;';
 }
 
 let dragObj = null, dragOffX = 0, dragOffY = 0;
 function startDrag(e, el) {
   dragObj = el;
+  // resolve right-based position to left before first drag
+  el.style.left = el.offsetLeft + 'px';
+  el.style.right = 'auto';
   dragOffX = e.clientX - el.offsetLeft;
   dragOffY = e.clientY - el.offsetTop;
   document.addEventListener('mousemove', onDrag);
