@@ -82,11 +82,11 @@ input[type=range] {
   background: rgba(100,105,130,0.35); cursor: pointer; outline: none;
 }
 input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 9px; height: 9px;
+  -webkit-appearance: none; width: 14px; height: 14px;
   border-radius: 50%; background: #e8c840; cursor: pointer;
 }
 input[type=range]::-moz-range-thumb {
-  width: 9px; height: 9px; border-radius: 50%;
+  width: 14px; height: 14px; border-radius: 50%;
   background: #e8c840; border: none; cursor: pointer;
 }
 input[type=text], select {
@@ -764,8 +764,8 @@ function initAudio() {
   comp.connect(AC.destination);
   reverbIn = d1;
 
-  if (navigator.requestMIDIAccess) {
-    navigator.requestMIDIAccess().then(acc => {
+  if (navigator.requestMIDIAccess && !midiAccess) {
+    navigator.requestMIDIAccess({ sysex: false }).then(acc => {
       midiAccess = acc;
       populateMidiDevices();
       acc.onstatechange = populateMidiDevices;
@@ -2017,6 +2017,14 @@ function drawRandomBurst() {
 }
 
 renderPresets();
+// Request MIDI access on page load so device list is populated before play
+if (navigator.requestMIDIAccess) {
+  navigator.requestMIDIAccess({ sysex: false }).then(acc => {
+    midiAccess = acc;
+    populateMidiDevices();
+    acc.onstatechange = populateMidiDevices;
+  }).catch(() => {});
+}
 requestAnimationFrame(frame);
 </script>
 </body>
