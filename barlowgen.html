@@ -1198,14 +1198,26 @@ function savePresets() {
 }
 
 function captureState() {
-  return JSON.parse(JSON.stringify(P));
+  return {
+    v1: JSON.parse(JSON.stringify(P)),
+    v2: voiceExts[0] ? JSON.parse(JSON.stringify(voiceExts[0].params)) : null,
+    v3: voiceExts[1] ? JSON.parse(JSON.stringify(voiceExts[1].params)) : null
+  };
 }
 
 function applyState(snap) {
   if (!snap) return;
-  Object.assign(P, snap);
-  syncUI();
-  rebuildState();
+  const v1 = snap.v1 || snap;
+  Object.assign(P, v1);
+  if (snap.v2 && voiceExts[0]) {
+    Object.assign(voiceExts[0].params, snap.v2);
+    rebuildVoiceState(voiceExts[0]);
+  }
+  if (snap.v3 && voiceExts[1]) {
+    Object.assign(voiceExts[1].params, snap.v3);
+    rebuildVoiceState(voiceExts[1]);
+  }
+  syncUI(); syncVoiceUI(); rebuildState();
 }
 
 function syncUI() {
@@ -1253,6 +1265,25 @@ function syncUI() {
   if (ddEl) { ddEl.value = P.driftDepth!==undefined?P.driftDepth:0.5; const ddv=document.getElementById('driftDepth-v'); if(ddv) ddv.textContent=(P.driftDepth!==undefined?P.driftDepth:0.5).toFixed(2); }
   const vdEl = document.getElementById('velocityDepth');
   if (vdEl) { vdEl.value = P.velocityDepth??0.7; const vdv=document.getElementById('velocityDepth-v'); if(vdv) vdv.textContent=(P.velocityDepth??0.7).toFixed(2); }
+}
+
+function syncVoiceUI() {
+  [['v2', 0], ['v3', 1]].forEach(([pfx, vi]) => {
+    const vp = voiceExts[vi] && voiceExts[vi].params;
+    if (!vp) return;
+    const g = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    const s = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    g(pfx+'-strat', vp.strat.join(' '));
+    g(pfx+'-metricity', vp.metricity); s(pfx+'mv', vp.metricity.toFixed(2));
+    g(pfx+'-tonality', vp.tonality);   s(pfx+'tv', vp.tonality.toFixed(2));
+    g(pfx+'-scale', vp.scale);
+    g(pfx+'-tonic', vp.tonic);
+    g(pfx+'-octave', vp.octave);       s(pfx+'ov', vp.octave);
+    g(pfx+'-ambitus', vp.ambitus);     s(pfx+'-ambitus-v', vp.ambitus + ' oct');
+    g(pfx+'-density', vp.density);     s(pfx+'-density-v', vp.density.toFixed(2));
+    g(pfx+'-wave', vp.wave);
+    g(pfx+'-chan', vp.midiChan);
+  });
 }
 
 function savePreset(idx) {
