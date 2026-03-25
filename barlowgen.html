@@ -367,6 +367,14 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
       <input type="range" id="v2-octave" min="1" max="5" step="1" value="3">
     </div>
     <div class="row">
+      <div class="lbl"><span>ambitus</span><span id="v2-ambitus-v">2 oct</span></div>
+      <input type="range" id="v2-ambitus" min="1" max="4" step="1" value="2">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>density</span><span id="v2-density-v">1.00</span></div>
+      <input type="range" id="v2-density" min="0" max="1" step="0.01" value="1.0">
+    </div>
+    <div class="row">
       <div class="lbl"><span>wave</span></div>
       <select id="v2-wave">
         <option value="sine">sine</option>
@@ -455,6 +463,14 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <div class="row">
       <div class="lbl"><span>octave</span><span id="v3ov">3</span></div>
       <input type="range" id="v3-octave" min="1" max="5" step="1" value="3">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>ambitus</span><span id="v3-ambitus-v">2 oct</span></div>
+      <input type="range" id="v3-ambitus" min="1" max="4" step="1" value="2">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>density</span><span id="v3-density-v">1.00</span></div>
+      <input type="range" id="v3-density" min="0" max="1" step="0.01" value="1.0">
     </div>
     <div class="row">
       <div class="lbl"><span>wave</span></div>
@@ -2132,6 +2148,16 @@ document.getElementById('phrase-loop-ind')?.addEventListener('click', () => {
     ve.params.octave = +e.target.value;
     document.getElementById(pfx+'ov').textContent = e.target.value;
     rebuildVoiceState(ve);
+  });
+  document.getElementById(pfx+'-ambitus').addEventListener('input', e => {
+    ve.params.ambitus = +e.target.value;
+    document.getElementById(pfx+'-ambitus-v').textContent = e.target.value + ' oct';
+    rebuildVoiceState(ve);
+  });
+  document.getElementById(pfx+'-density').addEventListener('input', e => {
+    ve.params.density = +e.target.value;
+    ve.state.density = ve.params.density;
+    document.getElementById(pfx+'-density-v').textContent = (+e.target.value).toFixed(2);
   });
   document.getElementById(pfx+'-wave').addEventListener('change', e => {
     ve.params.wave = e.target.value; ve.state.wave = e.target.value;
