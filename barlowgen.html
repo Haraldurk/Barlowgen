@@ -809,26 +809,23 @@ let driftPhase = 0, resonancePhase = 0, resonating = false;
 let probVizVisible = false, probVizOn = false, randomBurst = 0;
 const phraseLoop = { active: false, len: 8, buf: [], pos: 0 };
 
-function weightedPick(notes, normRank, tonality, lastFreq) {
+function weightedPick(notes, normRank, tonality, synnefism, driftBias, driftDepth) {
+  synnefism = synnefism || 0; driftBias = driftBias || 0; driftDepth = driftDepth || 0;
   if (!notes.length) return null;
-  // Barlow coupling: tonality rises on strong beats
   const lt = tonality * (0.3 + 0.7 * normRank);
-  const weights = notes.map(n =>
-    lt < 0.001 ? 1 : Math.pow(Math.max(0.005, n.nh), 2.5 * lt)
-  );
-
-  if (P.synnefism > 0 && lastFreq) {
-    for (let i = 0; i < notes.length; i++) {
-      const steps = Math.abs(12 * Math.log2(notes[i].freq / lastFreq));
-      weights[i] *= Math.pow(Math.max(0.01, 1 - steps/12), P.synnefism * 4);
-    }
-  }
-
+  const n = notes.length;
+  const weights = notes.map((note, i) => {
+    const hw = lt < 0.001 ? 1 : Math.pow(Math.max(0.005, note.nh), 2.5 * lt);
+    const rw = 1 / n;
+    const hw_syn = (1 - synnefism) * hw + synnefism * rw;
+    const pos = n > 1 ? i / (n - 1) : 0.5;
+    const driftW = driftDepth > 0.001
+      ? Math.max(0.01, 1 + (pos - 0.5) * driftBias * driftDepth * 4) : 1;
+    return hw_syn * driftW;
+  });
   let r = Math.random() * weights.reduce((a, b) => a + b, 0);
-  for (let i = 0; i < notes.length; i++) {
-    r -= weights[i]; if (r <= 0) return notes[i];
-  }
-  return notes[notes.length - 1];
+  for (let i = 0; i < n; i++) { r -= weights[i]; if (r <= 0) return notes[i]; }
+  return notes[n - 1];
 }
 
 function firePulse(idx, t, S, voiceIdx) {
@@ -839,36 +836,53 @@ function firePulse(idx, t, S, voiceIdx) {
   const nr = Q > 1 ? rank / (Q - 1) : 1;
 
   // Metricity gates probability — power curve for more natural hierarchy
-  const dens = S.density !== undefined ? S.density : 1;
+  const rc = S.restCluster !== undefined ? S.restCluster : (P.restCluster || 0);
+  const baseDens = S.density !== undefined ? S.density : 1;
+  const dens = (S.lastWasRest && rc > 0) ? baseDens * (1 - rc) : baseDens;
   const prob = S.metricity < 0.001 ? dens : Math.max(0, dens * Math.pow(1 - S.metricity * (1 - nr), 1.5));
 
   if (Math.random() < prob) {
     const noteArr = S.notes.directional
       ? (S.direction >= 0 ? S.notes.aroha : S.notes.avaroha)
       : (S.notes.aroha || S.notes);
-    const note = weightedPick(noteArr, nr, S.tonality, S.lastFreq);
+    const ep = S.echoProbability || 0;
+    let note;
+    if (ep > 0 && S.lastNote && Math.random() < ep) {
+      note = S.lastNote;
+    } else {
+      note = weightedPick(noteArr, nr, S.tonality,
+        S.synnefism !== undefined ? S.synnefism : (P.synnefism || 0),
+        S.driftBias || 0,
+        S.driftDepth !== undefined ? S.driftDepth : (P.driftDepth || 0));
+    }
     if (note) {
       if (S.lastFreq) {
         if (note.freq > S.lastFreq) S.direction = 1;
         else if (note.freq < S.lastFreq) S.direction = -1;
       }
       S.lastFreq = note.freq;
+      S.lastWasRest = false; S.lastNote = note;
 
       const amp = 0.07 + 0.14 * nr;
       const gate = S.gate !== undefined ? S.gate : 0.8;
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
-      const tFire = t + jOff;
+      const swingOffset = (voiceIdx === 0 && idx % 2 === 1 && (S.swing || P.swing || 0) > 0)
+        ? (S.swing || P.swing || 0) * 0.33 * S.pulseDur : 0;
+      const tFire = t + jOff + swingOffset;
       // Barlow duration: minimum 1.5 + nr * 1.0 scaling
       const dur = S.pulseDur * gate * (1.4 + 1.2 * nr);
       playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan, nr);
       vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false, vi: voiceIdx });
       if (voiceIdx === 0) { lastFireTime = tFire; lastFireNH = note.nh || 0.5; }
-    }
-  }
+    } else { S.lastWasRest = true; }
+  } else { S.lastWasRest = true; }
 
   // Bass on strong pulses (coupled to harmonic field)
   if (nr > 0.68 && P.bassVel > 0 && Math.random() < 0.78) {
-    const bn = weightedPick((S.notes.aroha || S.notes).slice(0, 6), nr, S.tonality, S.lastFreq);
+    const bn = weightedPick((S.notes.aroha || S.notes).slice(0, 6), nr, S.tonality,
+      S.synnefism !== undefined ? S.synnefism : (P.synnefism || 0),
+      S.driftBias || 0,
+      S.driftDepth !== undefined ? S.driftDepth : (P.driftDepth || 0));
     if (bn) {
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
