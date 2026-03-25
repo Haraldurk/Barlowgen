@@ -659,6 +659,10 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
   <div id="pslots-wrap" style="display:flex;gap:3px;flex-wrap:wrap"></div>
   <div id="morph-row" class="hidden">
     A<input type="range" id="morph-fader" min="0" max="1" step="0.001" value="0">B
+    <span style="color:rgba(160,165,190,0.6);font-size:10px;margin-left:8px">fade</span>
+    <input type="number" id="morph-fade-dur" value="10" min="1" max="300" step="1" style="width:40px;background:rgba(20,20,30,0.8);border:1px solid rgba(100,105,130,0.3);color:rgba(225,228,240,0.85);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 4px;border-radius:3px;text-align:right">
+    <span style="color:rgba(160,165,190,0.6);font-size:10px">s</span>
+    <button id="morph-go" style="margin-left:6px;padding:2px 8px;background:rgba(232,200,64,0.12);border:1px solid rgba(232,200,64,0.3);color:#e8c840;font-family:'IBM Plex Mono',monospace;font-size:10px;border-radius:3px;cursor:pointer">&#9654;</button>
     <button id="morph-clear" style="padding:1px 6px;font-size:9px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">x</button>
   </div>
 </div>
@@ -1184,6 +1188,8 @@ function rebuildVoiceState(ve) {
 let presets = [];
 let activeIdx = -1;
 let morphBIdx = -1;
+let morphTween = null;
+let morphPos = 0;
 
 try {
   presets = JSON.parse(localStorage.getItem('barlowgen_presets') || '[]');
@@ -1316,6 +1322,23 @@ function applyMorph(t) {
   if (t > 0.5) DISCRETE.forEach(k => { if (bv1[k] !== undefined) P[k] = bv1[k]; });
   syncUI();
   rebuildState();
+}
+
+function startTimedMorph(durationSecs) {
+  if (morphBIdx < 0) return;
+  if (morphTween) clearInterval(morphTween);
+  const startT = morphPos;
+  const startTime = performance.now();
+  const dur = durationSecs * 1000;
+  morphTween = setInterval(() => {
+    const elapsed = performance.now() - startTime;
+    const t = Math.min(startT + (1 - startT) * (elapsed / dur), 1);
+    morphPos = t;
+    const fader = document.getElementById('morph-fader');
+    if (fader) fader.value = t;
+    applyMorph(t);
+    if (t >= 1) { clearInterval(morphTween); morphTween = null; morphPos = 0; }
+  }, 50);
 }
 
 function renderPresets() {
@@ -2120,10 +2143,16 @@ document.getElementById('p-add').addEventListener('click', () => {
   renderPresets();
 });
 document.getElementById('morph-fader').addEventListener('input', e => {
-  applyMorph(+e.target.value);
+  morphPos = +e.target.value;
+  applyMorph(morphPos);
+});
+document.getElementById('morph-go')?.addEventListener('click', () => {
+  const dur = parseFloat(document.getElementById('morph-fade-dur').value) || 10;
+  startTimedMorph(dur);
 });
 document.getElementById('morph-clear').addEventListener('click', () => {
-  morphBIdx = -1;
+  if (morphTween) { clearInterval(morphTween); morphTween = null; }
+  morphBIdx = -1; morphPos = 0;
   document.getElementById('morph-row').classList.add('hidden');
   document.getElementById('morph-fader').value = 0;
   renderPresets();
