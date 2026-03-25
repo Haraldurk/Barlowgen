@@ -162,47 +162,11 @@ select optgroup { background: #080818; color: #303060;
 <canvas id="c"></canvas>
 
 <div id="status-bar">
-  <span id="sb-title">barlowgen</span>
-  <div id="sb-info">
-    <span id="sb-pulses">6 pulses</span>
-    <span id="sb-strat">[3&#215;2]</span>
-    <span id="sb-bpm">72 bpm</span>
-  </div>
-  <div id="sb-sections" style="display:flex;gap:4px;margin-left:8px">
-    <button onclick="jumpToSec('rhythm')" 
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Rhythm">RHY</button>
-    <button onclick="jumpToSec('harmony')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Harmony">HAR</button>
-    <button onclick="jumpToSec('voices')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Voices">VOI</button>
-    <button onclick="jumpToSec('midi')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="MIDI">MID</button>
-    <button onclick="jumpToSec('timbre')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Timbre">TIM</button>
-  </div>
-  <div id="sb-sections" style="display:flex;gap:4px;margin-left:8px">
-    <button onclick="jumpToSec('rhythm')" 
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Rhythm">RHY</button>
-    <button onclick="jumpToSec('harmony')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Harmony">HAR</button>
-    <button onclick="jumpToSec('voices')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Voices">VOI</button>
-    <button onclick="jumpToSec('midi')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="MIDI">MID</button>
-    <button onclick="jumpToSec('timbre')"
-      style="padding:2px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:#404070;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;cursor:pointer"
-      title="Timbre">TIM</button>
-  </div>
   <button id="play-btn">&#9654; start</button>
+  <span id="sb-title">barlowgen</span>
+  <span style="color:#2a2a50">·</span>
+  <span id="sb-bpm">72 bpm</span>
+  <span id="sb-pulses">6 pulses</span>
 </div>
 
 <div id="panel">
