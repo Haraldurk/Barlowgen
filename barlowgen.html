@@ -546,12 +546,8 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
       </select>
     </div>
     <div class="row">
-      <div class="lbl"><span>vel min</span><span id="vlmin">40</span></div>
-      <input type="range" id="vel-min" min="1" max="100" step="1" value="40">
-    </div>
-    <div class="row">
-      <div class="lbl"><span>vel max</span><span id="vlmax">110</span></div>
-      <input type="range" id="vel-max" min="40" max="127" step="1" value="127">
+      <div class="lbl"><span data-tip="0 = all notes equal velocity (Barlow-faithful). 1 = indispensability drives dynamics — strong beats louder.">velocity depth</span><span id="velocityDepth-v">0.70</span></div>
+      <input type="range" id="velocityDepth" min="0" max="1" step="0.01" value="0.7">
     </div>
   </div>
 
@@ -938,8 +934,9 @@ function playNote(freq, dur, amp, t, wave, bass, chan, nr) {
   if (!bass && chan) {
     const mn = freqToMidi(freq);
     if (mn >= 0 && mn <= 127) {
+      const vd = nr !== undefined ? (state.velocityDepth ?? P.velocityDepth ?? 0.7) : 0.7;
       const vel = Math.max(1, Math.min(127,
-        Math.round(P.velocityMin + Math.pow(nr, 0.5) * (P.velocityMax - P.velocityMin))
+        Math.round(64 + vd * (127 - 64) * Math.pow(nr, 0.5) - vd * 24 * (1 - nr))
       ));
       midiNoteOn(mn, vel, chan, t);
       midiNoteOff(mn, chan, t + dur);
@@ -1114,8 +1111,7 @@ const P = {
   jitter: 0,
   bassVel: 0.5,
   midiChan: 1,
-  velocityMin: 40,
-  velocityMax: 127,
+  velocityDepth: 0.7,
   gateMin: 0.12, gateMax: 0.92,
   swing: 0, restCluster: 0,
   echoProbability: 0, complexity: 1.0,
@@ -1130,7 +1126,8 @@ const P = {
   swing: 0, restCluster: 0,
   echoProbability: 0, complexity: 1.0,
   driftRate: 0, driftDepth: 0.5,
-  driftBias: 0, lastWasRest: false, lastNote: null, tonicMult: 1
+  driftBias: 0, lastWasRest: false, lastNote: null, tonicMult: 1,
+  velocityDepth: 0.7
   };
 
 function makeVoiceParams(strat, chan) {
@@ -1238,6 +1235,8 @@ function syncUI() {
   if (drEl) { drEl.value = P.driftRate||0; const drv=document.getElementById('driftRate-v'); if(drv) drv.textContent=(P.driftRate||0).toFixed(2); }
   const ddEl = document.getElementById('driftDepth');
   if (ddEl) { ddEl.value = P.driftDepth!==undefined?P.driftDepth:0.5; const ddv=document.getElementById('driftDepth-v'); if(ddv) ddv.textContent=(P.driftDepth!==undefined?P.driftDepth:0.5).toFixed(2); }
+  const vdEl = document.getElementById('velocityDepth');
+  if (vdEl) { vdEl.value = P.velocityDepth??0.7; const vdv=document.getElementById('velocityDepth-v'); if(vdv) vdv.textContent=(P.velocityDepth??0.7).toFixed(2); }
 }
 
 function savePreset(idx) {
@@ -1484,6 +1483,7 @@ function rebuildState() {
   state.complexity = P.complexity;
   state.driftRate = P.driftRate;
   state.driftDepth = P.driftDepth;
+  state.velocityDepth = P.velocityDepth;
   state.tonicMult = state.tonicMult ?? 1;
   if (master) master.gain.value = P.volume;
   updateStatus();
@@ -1976,13 +1976,10 @@ document.getElementById('midi-dev').addEventListener('change', e => {
 document.getElementById('midi-chan').addEventListener('change', e => {
   P.midiChan = +e.target.value;
 });
-document.getElementById('vel-min').addEventListener('input', e => {
-  P.velocityMin = +e.target.value;
-  document.getElementById('vlmin').textContent = e.target.value;
-});
-document.getElementById('vel-max').addEventListener('input', e => {
-  P.velocityMax = +e.target.value;
-  document.getElementById('vlmax').textContent = e.target.value;
+document.getElementById('velocityDepth')?.addEventListener('input', e => {
+  P.velocityDepth = +e.target.value;
+  document.getElementById('velocityDepth-v').textContent = P.velocityDepth.toFixed(2);
+  state.velocityDepth = P.velocityDepth;
 });
 
 document.getElementById('tune-sigma').addEventListener('input', e => {
