@@ -1407,15 +1407,34 @@ let webLines = [];
 let cPulse = 0;
 let last = 0;
 
+function tickModulators(dt) {
+  // Drift LFO
+  state.swing = P.swing;
+  state.restCluster = P.restCluster;
+  state.echoProbability = P.echoProbability;
+  state.driftRate = P.driftRate;
+  state.driftDepth = P.driftDepth;
+  const driftPeriod = 120 / (P.driftRate * 0.9 + 0.1);
+  driftPhase = (driftPhase + dt / driftPeriod) % 1;
+  state.driftBias = P.driftRate > 0.001 ? Math.sin(driftPhase * Math.PI * 2) : 0;
+
+  // Resonance detection
+  if (playing && AC) {
+    const silence = AC.currentTime - lastFireTime;
+    resonating = silence > 1.5;
+    if (resonating) {
+      resonancePhase = (resonancePhase + dt * 0.4) % 1;
+    }
+  } else {
+    resonating = false;
+  }
+}
+
 function frame(ts) {
   requestAnimationFrame(frame);
   const dt = Math.min((ts - last) / 1000, 0.05);
   last = ts;
-
-  if (playing && AC) {
-    resonating = (AC.currentTime - lastFireTime) > 1.5;
-  }
-  if (resonating) resonancePhase += dt * 0.4;
+  tickModulators(dt);
 
   // Drain visual event queue at audio time
   if (playing && AC) {
