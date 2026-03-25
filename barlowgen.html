@@ -280,6 +280,9 @@ select optgroup { background: #080818; color: #303060;
       <div class="lbl"><span>tonality</span><span id="tv">0.70</span></div>
       <input type="range" id="tonality" min="0" max="1" step="0.01" value="0.70">
     </div>
+    <div class="row"><div class="lbl"><span>tonic shift</span><span id="tsv">0.0</span></div><input type="range" id="tonicShift" min="-12" max="12" step="0.1" value="0"></div>
+    <div class="row"><div class="lbl"><span>synnefism</span><span id="syv">0.00</span></div><input type="range" id="synnefism" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>rotation</span><span id="rv">0.00</span></div><input type="range" id="rotation" min="0" max="1" step="0.01" value="0"></div>
   </div>
 
   <!-- VOICES -->
@@ -1783,19 +1786,22 @@ if (scStopBtn) scStopBtn.addEventListener('click', () => {
   if (scTime) scTime.textContent = 't = 0s';
 });
 
-  document.getElementById('tonicShift').addEventListener('input', e => {
+  const tsEl = document.getElementById('tonicShift');
+  if (tsEl) tsEl.addEventListener('input', e => {
     P.tonicShift = +e.target.value;
     state.tonicMult = Math.pow(2, P.tonicShift / 12);
-    document.getElementById('tsv').textContent = P.tonicShift.toFixed(1);
+    document.getElementById('tsv').textContent = (+e.target.value).toFixed(1);
   });
-  document.getElementById('rotation').addEventListener('input', e => {
+  const roEl = document.getElementById('rotation');
+  if (roEl) roEl.addEventListener('input', e => {
     P.rotation = +e.target.value;
-    document.getElementById('rv').textContent = P.rotation.toFixed(2);
+    document.getElementById('rv').textContent = (+e.target.value).toFixed(2);
     rebuildState();
   });
-  document.getElementById('synnefism').addEventListener('input', e => {
+  const syEl = document.getElementById('synnefism');
+  if (syEl) syEl.addEventListener('input', e => {
     P.synnefism = +e.target.value;
-    document.getElementById('syv').textContent = P.synnefism.toFixed(2);
+    document.getElementById('syv').textContent = (+e.target.value).toFixed(2);
   });
 
 document.getElementById('p-add').addEventListener('click', () => {
