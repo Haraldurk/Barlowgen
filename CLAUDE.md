@@ -57,6 +57,7 @@ stays in panel with gold dot indicator. Click header to bring float to front.
 - ✓ Session save/load: full JSON snapshot (P, V2/V3 params, presets, score inputs). SESSION section at panel bottom.
 - ✓ Score timeline: dark bar at canvas bottom, 12-param colored dots (amber→blue hue spread), live playhead when scoreAuto.running
 - ✓ Right-click context menu: MIDI learn (range-aware CC→param mapping via onMidiMessage(), wired to all inputs via populateMidiDevices()), LFO assign per slider (sinusoidal, 3–300s period, non-destructive state write). 18 V1 sliders have data-param attributes.
+- ✓ Bass shadow voice MIDI output: freqToMidi(bn.freq/2) matched to WebAudio bass, vel = round(bassVel×64) clamped 1–80, guarded by P.bassVel > 0 && voiceIdx === 0 && midiOut. Fires at same tFire and bassDur as WebAudio event.
 
 ## What still needs building
 - Preset name shown in status bar on load

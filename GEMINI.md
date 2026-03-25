@@ -45,7 +45,7 @@ qualitative musical traits are quantified and modulated in real-time.
 - Velocity depth: 0=flat, 1=full Barlowian dynamics (indispensability-driven)
 - Echo probability: repeat last note with set probability
 - Drift: LFO-like register drift (driftRate, driftDepth, driftBias)
-- bassVel: relative weight for lower-octave notes
+- bassVel: relative weight for lower-octave notes; bass shadow voice now routed to MIDI output (same channel as V1, velocity scaled by bassVel, JI-accurate via freqToMidi)
 
 ### Voices
 - V1: master voice, full parameter set in P object
