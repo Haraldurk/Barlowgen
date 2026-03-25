@@ -17,8 +17,8 @@ qualitative musical traits are quantified and modulated in real-time.
   deviations when communicating via WebMIDI.
 - **Parameter Modulation:** Parameters should be interactive and discoverable.
   Currently: breakpoint score automation, timed A→B morph, phraseLoop,
-  drift LFO (driftBias/driftDepth). Future: right-click MIDI learn and
-  per-slider LFO assign.
+  drift LFO (driftBias/driftDepth), right-click MIDI learn and per-slider
+  LFO assign (sinusoidal, non-destructive state write).
 
 ## Implemented (as of 2026-03-25, tag v1.2-working)
 
@@ -76,10 +76,10 @@ qualitative musical traits are quantified and modulated in real-time.
 - Detachable sections: float as draggable panels, reattach with ✕
 - Master ⚄ randomizer in status bar; per-section ⚄ icons; R key
 - Directed randomizers: each section has constrained Barlowian random logic
+- Session save/load: JSON snapshot of P, V2/V3 params, presets, score inputs (SESSION section)
+- Score timeline: per-param colored breakpoint markers (amber→blue hue spread), live playhead (scoreAuto.running)
+- Right-click context menu: MIDI learn + LFO assign per slider (18 V1 sliders have data-param)
 
 ## What Still Needs Building
-- Right-click context menu: MIDI learn, LFO assign per slider
-- Score timeline visual: canvas strip with breakpoint markers and playhead
-- V2/V3 params in timed morph (currently V1 only)
 - Preset name shown in status bar on load
-- Save/load full session to JSON file
+- V2/V3 params in timed morph (currently V1 only)

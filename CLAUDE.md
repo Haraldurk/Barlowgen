@@ -54,13 +54,13 @@ stays in panel with gold dot indicator. Click header to bring float to front.
 - ✓ ⚄ per-section header icons + inline expression/drift ⚄ in Timbre body
 - ✓ Master ⚄ in status bar (R key also triggers)
 - ✓ Score automation: 12 params automatable via breakpoint syntax
+- ✓ Session save/load: full JSON snapshot (P, V2/V3 params, presets, score inputs). SESSION section at panel bottom.
+- ✓ Score timeline: dark bar at canvas bottom, 12-param colored dots (amber→blue hue spread), live playhead when scoreAuto.running
+- ✓ Right-click context menu: MIDI learn (range-aware CC→param mapping via onMidiMessage(), wired to all inputs via populateMidiDevices()), LFO assign per slider (sinusoidal, 3–300s period, non-destructive state write). 18 V1 sliders have data-param attributes.
 
 ## What still needs building
-- Right-click context menu: MIDI learn, LFO assign per slider
-- Score timeline visual (canvas strip, breakpoint markers, playhead)
-- V2/V3 params in timed morph (currently only V1 interpolated)
 - Preset name shown in status bar on load
-- Save/load full session to JSON file
+- V2/V3 params in timed morph (currently only V1 interpolated)
 
 ## Rules
 - NEVER rewrite the whole file
@@ -70,5 +70,6 @@ stays in panel with gold dot indicator. Click header to bring float to front.
 
 ## Current git state
 Main branch. Tag v1.2-working = 6eb8fd2.
+Post-prompt-3 state: session, timeline, ctx-menu complete.
 Always check git log before editing.
 Run: grep -n "function_name" barlowgen.html to find line numbers.
