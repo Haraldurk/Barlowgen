@@ -697,7 +697,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <button id="btn-save-session" style="flex:1;padding:6px;background:rgba(40,80,160,0.12);border:0.5px solid rgba(80,120,220,0.3);border-radius:5px;color:rgba(140,170,240,0.9);font-family:var(--mono);font-size:10px;cursor:pointer">&#11015; Save JSON</button>
     <button id="btn-load-session" style="flex:1;padding:6px;background:rgba(40,80,160,0.12);border:0.5px solid rgba(80,120,220,0.3);border-radius:5px;color:rgba(140,170,240,0.9);font-family:var(--mono);font-size:10px;cursor:pointer">&#11014; Load JSON</button>
   </div>
-  <input type="file" id="input-load-session" accept=".json" style="display:none">
+  <input type="file" id="input-load-session" accept=".barlo,.json" style="display:none">
   <div id="session-status" style="font-size:10px;color:#888;min-height:14px;text-align:center"></div>
 </div>
 
@@ -2658,7 +2658,7 @@ function saveSession() {
   const blob = new Blob([JSON.stringify(session, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'barlowgen-session-' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = 'barlowgen-session-' + new Date().toISOString().slice(0,10) + '.barlo';
   a.click();
   URL.revokeObjectURL(a.href);
   const st = document.getElementById('session-status');
