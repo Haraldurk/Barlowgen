@@ -122,24 +122,24 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 .sec-hdr.open .sec-icon { transform: rotate(90deg); color: var(--accent); }
 .sec-hdr .sec-title { flex: 1; }
 .sec-hdr .sec-help {
-  color: rgba(160,165,190,0.5); cursor: pointer; margin-left: 8px;
+  color: rgba(232,200,64,0.45); cursor: pointer; margin-left: 8px;
   display: flex; align-items: center; justify-content: center;
   transition: color 0.2s; flex-shrink: 0;
 }
-.sec-hdr .sec-help:hover { color: rgba(220,225,240,0.9); }
+.sec-hdr .sec-help:hover { color: rgba(232,200,64,0.95); }
 .sec-tooltip { display: none; }
 
 .sec-hdr .sec-detach {
-  font-size: 11px; color: rgba(140,145,170,0.4); cursor: pointer; padding: 1px 4px; margin-left: 4px;
+  font-size: 11px; color: rgba(232,200,64,0.45); cursor: pointer; padding: 1px 4px; margin-left: 4px;
   border: 0.5px solid transparent; border-radius: 3px; transition: all 0.15s; line-height: 1;
 }
-.sec-hdr .sec-detach:hover { color: rgba(200,205,220,0.75); border-color: rgba(140,145,170,0.3); }
+.sec-hdr .sec-detach:hover { color: rgba(232,200,64,0.95); border-color: rgba(232,200,64,0.25); }
 .sec-hdr .sec-rand {
-  font-size: 12px; color: rgba(160,165,190,0.45); cursor: pointer;
+  font-size: 12px; color: rgba(232,200,64,0.45); cursor: pointer;
   padding: 1px 4px; margin: 0 2px; line-height: 1; transition: color 0.15s;
 }
 .sec-rand.inline {
-  font-size: 11px; color: rgba(160,165,190,0.45); cursor: pointer; transition: color 0.15s;
+  font-size: 11px; color: rgba(232,200,64,0.45); cursor: pointer; transition: color 0.15s;
 }
 #collapse-all:hover { color: rgba(230,232,240,0.9) !important; }
 
@@ -2350,8 +2350,8 @@ if (navigator.requestMIDIAccess) {
 requestAnimationFrame(frame);
 // Section randomizers
 document.querySelectorAll('.sec-rand').forEach(btn => {
-  btn.addEventListener('mouseenter', () => btn.style.color = 'rgba(232,200,64,0.85)');
-  btn.addEventListener('mouseleave', () => btn.style.color = 'rgba(160,165,190,0.45)');
+  btn.addEventListener('mouseenter', () => btn.style.color = 'rgba(232,200,64,0.95)');
+  btn.addEventListener('mouseleave', () => btn.style.color = 'rgba(232,200,64,0.45)');
   btn.addEventListener('click', e => {
     e.stopPropagation();
     const sec = btn.dataset.sec;
