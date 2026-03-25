@@ -311,17 +311,15 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <div class="row"><div class="lbl"><span>complexity</span><span id="complexity-v">1.00</span></div><input type="range" id="complexity" min="0" max="1" step="0.01" value="1.0"></div>
   </div>
 
-  <!-- VOICES -->
-  <div class="sec-hdr" id="hdr-voices" onclick="toggleSec(this)">
+  <!-- VOICE 2 -->
+  <div class="sec-hdr" id="hdr-voice2" onclick="toggleSec(this)">
     <span class="sec-icon">&#9656;</span>
-    <span class="sec-title">Voices</span>
-    <span class="sec-help" data-tip="Three independent generative streams sharing master BPM. Each has its own stratification, scale, tonic, octave range, ambitus, density, waveform, and MIDI channel. All voice settings are saved in presets."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
-    <div class="sec-tooltip"></div>
-    <span class="sec-rand" data-sec="voices" title="randomize voices">⚄</span>
-    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('voices')">&#10530;</span>
+    <span class="sec-title">Voice 2</span>
+    <span class="sec-help" data-tip="Voice 2 — independent generative stream. Own stratification, scale, tonic, tonality, octave, ambitus, density, waveform and MIDI channel. Shares master BPM.&#10;Visual: middle ring at 73% radius, hue offset +100°."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
+    <span class="sec-rand" data-sec="voice2" title="randomize voice 2">⚄</span>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('voice2')">&#10530;</span>
   </div>
-  <div id="body-voices" class="sec-body">
-    <div class="sec-label">── voice 2 ──</div>
+  <div id="body-voice2" class="sec-body">
     <div class="row">
       <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(160,165,190,0.65);cursor:pointer">
         <input type="checkbox" id="v2-en"> enable
@@ -418,8 +416,17 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
         <option value="15">15</option><option value="16">16</option>
       </select>
     </div>
+  </div>
 
-    <div class="sec-label" style="margin-top:18px">── voice 3 ──</div>
+  <!-- VOICE 3 -->
+  <div class="sec-hdr" id="hdr-voice3" onclick="toggleSec(this)">
+    <span class="sec-icon">&#9656;</span>
+    <span class="sec-title">Voice 3</span>
+    <span class="sec-help" data-tip="Voice 3 — independent generative stream. Own stratification, scale, tonic, tonality, octave, ambitus, density, waveform and MIDI channel. Shares master BPM.&#10;Visual: inner ring at 50% radius, hue offset −80°."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
+    <span class="sec-rand" data-sec="voice3" title="randomize voice 3">⚄</span>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('voice3')">&#10530;</span>
+  </div>
+  <div id="body-voice3" class="sec-body">
     <div class="row">
       <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(160,165,190,0.65);cursor:pointer">
         <input type="checkbox" id="v3-en"> enable
@@ -2057,6 +2064,28 @@ function randomizeDrift() {
   syncUI(); rebuildState(); randomBurst = 1;
 }
 
+function randomizeVoice2() {
+  const ve = voiceExts[0]; if (!ve) return;
+  ve.params.strat = barlowRandomStrat(12, 3);
+  const SCALES = Object.keys(window.SCALES || {}).filter(k => !k.includes('custom'));
+  ve.params.scale = SCALES[Math.floor(Math.random() * SCALES.length)];
+  ve.params.metricity = 0.2 + Math.random() * 0.7;
+  ve.params.tonality = 0.2 + Math.random() * 0.75;
+  ve.params.density = 0.4 + Math.random() * 0.6;
+  rebuildVoiceState(ve);
+  syncVoiceUI(); randomBurst = 1;
+}
+function randomizeVoice3() {
+  const ve = voiceExts[1]; if (!ve) return;
+  ve.params.strat = barlowRandomStrat(12, 3);
+  const SCALES = Object.keys(window.SCALES || {}).filter(k => !k.includes('custom'));
+  ve.params.scale = SCALES[Math.floor(Math.random() * SCALES.length)];
+  ve.params.metricity = 0.2 + Math.random() * 0.7;
+  ve.params.tonality = 0.2 + Math.random() * 0.75;
+  ve.params.density = 0.4 + Math.random() * 0.6;
+  rebuildVoiceState(ve);
+  syncVoiceUI(); randomBurst = 1;
+}
 function randomizeVoices() {
   const STRATS = [[2,2],[3,2],[2,3],[2,2,2],[3,3],[5,2],[7]];
   const SCALES = Object.keys(window.SCALES || {}).filter(k => !k.includes('custom'));
@@ -2425,6 +2454,8 @@ document.querySelectorAll('.sec-rand').forEach(btn => {
     else if (sec === 'harmony')   randomizeHarmony();
     else if (sec === 'timbre')    randomizeTimbre();
     else if (sec === 'voices')    randomizeVoices();
+    else if (sec === 'voice2')    randomizeVoice2();
+    else if (sec === 'voice3')    randomizeVoice3();
     else if (sec === 'expression') randomizeExpression();
     else if (sec === 'drift')     randomizeDrift();
   });
