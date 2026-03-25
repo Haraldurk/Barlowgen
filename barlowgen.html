@@ -1760,11 +1760,12 @@ document.getElementById('tune-apply').addEventListener('click', () => {
   applyTuning(name, ratios);
 });
 
-document.getElementById('sc-run').addEventListener('click', () => {
+const scRunBtn = document.getElementById('sc-run');
+const scStopBtn = document.getElementById('sc-stop');
+if (scRunBtn) scRunBtn.addEventListener('click', () => {
   if (scoreAuto.running) {
     scoreAuto.running = false;
-    document.getElementById('sc-run').textContent = '▶ run';
-    document.getElementById('sc-run').classList.remove('on');
+    if (scRunBtn) { scRunBtn.textContent = '▶ run'; scRunBtn.classList.remove('on'); }
   } else {
     ['metricity','tonality','density','bpm','tonicShift','morph'].forEach(k => {
       const el = document.getElementById('sc-' + k);
@@ -1772,15 +1773,14 @@ document.getElementById('sc-run').addEventListener('click', () => {
     });
     scoreAuto.startTime = AC ? AC.currentTime : 0;
     scoreAuto.running = true;
-    document.getElementById('sc-run').textContent = '⏸ pause';
-    document.getElementById('sc-run').classList.add('on');
+    if (scRunBtn) { scRunBtn.textContent = '⏸ pause'; scRunBtn.classList.add('on'); }
   }
 });
-document.getElementById('sc-stop').addEventListener('click', () => {
+if (scStopBtn) scStopBtn.addEventListener('click', () => {
   scoreAuto.running = false;
-  document.getElementById('sc-run').textContent = '▶ run';
-  document.getElementById('sc-run').classList.remove('on');
-  document.getElementById('sc-time').textContent = 't = 0s';
+  if (scRunBtn) { scRunBtn.textContent = '▶ run'; scRunBtn.classList.remove('on'); }
+  const scTime = document.getElementById('sc-time');
+  if (scTime) scTime.textContent = 't = 0s';
 });
 
   document.getElementById('tonicShift').addEventListener('input', e => {
