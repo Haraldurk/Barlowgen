@@ -181,6 +181,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 .pslot.saved { border-color: rgba(80,100,200,0.45); color: #5060a0; }
 .pslot.active { border-color: rgba(232,200,64,0.6); color: var(--accent); background: rgba(232,200,64,0.06); }
 .pslot.morph-b { border-color: rgba(200,60,200,0.6); color: #e040e0; }
+.pslot.just-saved { border-color: var(--accent); box-shadow: 0 0 6px var(--accent); }
 #morph-row { display: flex; align-items: center; gap: 5px; font-size: 9px; color: #2a2a50; }
 #morph-row input[type=range] { width: 60px; }
 .pnum { font-size:8px; opacity:0.45; line-height:1.2; display:block; }
@@ -770,7 +771,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
   <button id="p-add">+</button>
   <div id="pslots-wrap" style="display:flex;gap:3px;flex-wrap:wrap" data-tip="Preset slots — click + to save current state. Left-click to load (A). Right-click to set as morph target (B). Stores V1, V2, V3 parameters."></div>
   <button id="btn-export-preset" title="Export all presets to .barlo file" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬇ALL</button>
-  <button id="btn-import-preset" title="Import preset from .barlo file into active slot" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬆P</button>
+  <button id="btn-import-preset" title="Import all presets from .barlo file" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬆P</button>
   <input type="file" id="input-import-preset" accept=".barlo,.json" style="display:none">
   <div id="morph-row" class="hidden">
     <span data-tip="Drag to interpolate between preset A (left-click active) and preset B (right-click active). All numeric parameters blend continuously; scale/tonic snap at midpoint.">A</span><input type="range" id="morph-fader" min="0" max="1" step="0.001" value="0">B
@@ -1323,7 +1324,7 @@ try {
   presets = JSON.parse(localStorage.getItem('barlowgen_presets') || '[]');
 } catch(e) { presets = []; }
 if (!presets.length) {
-  for (let i = 0; i < 8; i++) presets.push({ name: 'P'+(i+1), data: null });
+  for (let i = 0; i < 8; i++) presets.push({ name: '', data: null });
   savePresets();
 }
 
@@ -1421,11 +1422,16 @@ function syncVoiceUI() {
 }
 
 function savePreset(idx) {
-  while (presets.length <= idx) presets.push({ name: 'P'+(presets.length+1), data: null });
+  while (presets.length <= idx) presets.push({ name: '', data: null });
   presets[idx].data = captureState();
   savePresets();
   activeIdx = idx;
   renderPresets();
+  const slots = document.querySelectorAll('.pslot');
+  if (slots[idx]) {
+    slots[idx].classList.add('just-saved');
+    setTimeout(() => slots[idx].classList.remove('just-saved'), 600);
+  }
 }
 
 function loadPreset(idx) {
@@ -1436,7 +1442,7 @@ function loadPreset(idx) {
   const titleEl = document.getElementById('sb-title');
   if (titleEl) {
     clearTimeout(titleEl._nameTimer);
-    titleEl.textContent = presets[idx].name || ('P' + (idx + 1));
+    titleEl.textContent = presets[idx].name || String(idx + 1);
     titleEl._nameTimer = setTimeout(() => { titleEl.textContent = 'barlowgen'; }, 3000);
   }
 }
@@ -2511,7 +2517,7 @@ if (scStopBtn) scStopBtn.addEventListener('click', () => {
   });
 
 document.getElementById('p-add').addEventListener('click', () => {
-  presets.push({ name: 'P'+(presets.length+1), data: null });
+  presets.push({ name: '', data: null });
   savePresets();
   renderPresets();
 });
@@ -2852,38 +2858,37 @@ function exportAllPresets() {
   URL.revokeObjectURL(a.href);
 }
 
-function importPreset(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    let data;
-    try { data = JSON.parse(e.target.result); } catch { return; }
-    const idx = activeIdx >= 0 ? activeIdx : 0;
-    if (data.presets && Array.isArray(data.presets)) {
-      // all-presets format
-      presets.length = 0;
-      data.presets.forEach(p => presets.push(p));
-    } else if (data.preset) {
-      // single preset format (old .barlo files)
-      presets[idx] = data.preset;
-    } else {
-      // raw slot object
-      presets[idx] = data;
-    }
-    savePresets();
-    loadPreset(idx);
-    renderPresets();
+function importPreset() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.barlo,.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.presets && Array.isArray(data.presets)) {
+          presets.length = 0;
+          data.presets.forEach(p => presets.push(p));
+          savePresets();
+          renderPresets();
+          loadPreset(0);
+        } else {
+          alert('Not a valid Barlowgen presets file.');
+        }
+      } catch(err) {
+        alert('Could not parse file: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
   };
-  reader.readAsText(file);
+  input.click();
 }
 
 document.getElementById('btn-export-preset').addEventListener('click', exportAllPresets);
-document.getElementById('btn-import-preset').addEventListener('click', () => {
-  document.getElementById('input-import-preset').click();
-});
-document.getElementById('input-import-preset').addEventListener('change', e => {
-  if (e.target.files[0]) importPreset(e.target.files[0]);
-  e.target.value = '';
-});
+document.getElementById('btn-import-preset').addEventListener('click', importPreset);
 
 document.getElementById('btn-save-session').addEventListener('click', saveSession);
 document.getElementById('btn-load-session').addEventListener('click', () => {
