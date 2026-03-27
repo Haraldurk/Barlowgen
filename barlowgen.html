@@ -528,6 +528,20 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
         <option value="karplus">karplus</option>
       </select>
     </div>
+    <div class="karplus-controls" id="kc-v2" style="display:none">
+      <div class="row">
+        <div class="lbl"><span>decay</span><span id="val-kDecay-v2">0.980</span></div>
+        <input type="range" id="sl-kDecay-v2" min="0.90" max="0.999" step="0.001" value="0.98" data-tip="Karplus decay — 0.90=staccato, 0.999=sustain">
+      </div>
+      <div class="row">
+        <div class="lbl"><span>brightness</span><span id="val-kBright-v2">0.50</span></div>
+        <input type="range" id="sl-kBright-v2" min="0.1" max="2.0" step="0.01" value="0.5" data-tip="Karplus brightness — 0.1=dark, 2.0=bright">
+      </div>
+      <div class="row">
+        <div class="lbl"><span>pluck</span><span id="val-kPluck-v2">0.50</span></div>
+        <input type="range" id="sl-kPluck-v2" min="0.0" max="1.0" step="0.01" value="0.5" data-tip="Pluck hardness — 0=soft, 1=hard">
+      </div>
+    </div>
     <div class="row">
       <div class="lbl"><span>midi ch</span></div>
       <select id="v2-chan">
@@ -643,6 +657,20 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
         <option value="sawtooth">sawtooth</option>
         <option value="karplus">karplus</option>
       </select>
+    </div>
+    <div class="karplus-controls" id="kc-v3" style="display:none">
+      <div class="row">
+        <div class="lbl"><span>decay</span><span id="val-kDecay-v3">0.980</span></div>
+        <input type="range" id="sl-kDecay-v3" min="0.90" max="0.999" step="0.001" value="0.98" data-tip="Karplus decay — 0.90=staccato, 0.999=sustain">
+      </div>
+      <div class="row">
+        <div class="lbl"><span>brightness</span><span id="val-kBright-v3">0.50</span></div>
+        <input type="range" id="sl-kBright-v3" min="0.1" max="2.0" step="0.01" value="0.5" data-tip="Karplus brightness — 0.1=dark, 2.0=bright">
+      </div>
+      <div class="row">
+        <div class="lbl"><span>pluck</span><span id="val-kPluck-v3">0.50</span></div>
+        <input type="range" id="sl-kPluck-v3" min="0.0" max="1.0" step="0.01" value="0.5" data-tip="Pluck hardness — 0=soft, 1=hard">
+      </div>
     </div>
     <div class="row">
       <div class="lbl"><span>midi ch</span></div>
