@@ -208,6 +208,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
   border-bottom-color: var(--accent);
 }
 .voice-panel { display: block; }
+#audio-mute-group { display:flex; align-items:center; gap:4px; margin-left:8px; }
+.sb-mute-btn { background:none; border:none; font-family:var(--mono); font-size:9px; letter-spacing:0.08em; color:var(--accent); cursor:pointer; padding:2px 4px; opacity:1; transition:opacity 0.15s; }
+.sb-mute-btn.muted { color:rgba(160,165,190,0.5); opacity:0.4; }
+.sb-mute-dot { font-size:10px; color:var(--accent); cursor:pointer; opacity:1; transition:opacity 0.15s, color 0.15s; user-select:none; }
+.sb-mute-dot.muted { color:rgba(160,165,190,0.5); opacity:0.3; }
 .scale-lock-btn {
   background: none; border: none;
   color: rgba(160,165,190,0.5);
@@ -230,6 +235,12 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
   <button id="collapse-all" title="Collapse all sections"
     style="padding:3px 8px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:rgba(180,185,210,0.6);font-family:var(--mono);font-size:14px;cursor:pointer;margin-left:4px;transition:color 0.15s"
     onclick="toggleAllSections()">&#8863;</button>
+  <span id="audio-mute-group">
+    <button id="btn-aud" class="sb-mute-btn" title="Toggle internal audio">AUDIO</button>
+    <span class="sb-mute-dot" data-vmute="0" title="Voice 1 audio">●</span>
+    <span class="sb-mute-dot" data-vmute="1" title="Voice 2 audio">●</span>
+    <span class="sb-mute-dot" data-vmute="2" title="Voice 3 audio">●</span>
+  </span>
   <span id="sb-title" style="margin-left:8px">barlowgen</span>
   <div id="sb-info" style="margin-left:auto; display:flex; gap:16px;">
     <span id="sb-pulses">6 pulses</span>
@@ -1003,12 +1014,20 @@ function buildNotes(scaleName, tonic, octave, ambitus) {
 
 const midi={out:null,chan:1,perfOffset:0};
 let AC=null,master=null,reverbIn=null,midiOut=null,midiAccess=null;
+let v1Gain=null,v2Gain=null,v3Gain=null;
+let audioMuted = false;
+let voiceMuted = [false, false, false]; // V1, V2, V3
 
 function initAudio() {
   AC = new (window.AudioContext || window.webkitAudioContext)();
   midi.perfOffset = performance.now() - AC.currentTime * 1000;
   master = AC.createGain();
   master.gain.value = P.volume;
+
+  v1Gain = AC.createGain(); v1Gain.gain.value = 1;
+  v2Gain = AC.createGain(); v2Gain.gain.value = 1;
+  v3Gain = AC.createGain(); v3Gain.gain.value = 1;
+  v1Gain.connect(master); v2Gain.connect(master); v3Gain.connect(master);
 
   // Lush ping-pong delay reverb
   const d1 = AC.createDelay(3); d1.delayTime.value = 0.37;
@@ -1041,7 +1060,7 @@ function initAudio() {
   }
 }
 
-function playNote(freq, dur, amp, t, wave, bass, chan, nr) {
+function playNote(freq, dur, amp, t, wave, bass, chan, nr, dest) {
   const osc = AC.createOscillator();
   const env = AC.createGain();
   const flt = AC.createBiquadFilter();
@@ -1061,7 +1080,7 @@ function playNote(freq, dur, amp, t, wave, bass, chan, nr) {
   env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
   osc.connect(flt); flt.connect(env);
-  env.connect(master);
+  env.connect(dest || master);
   if (!bass) env.connect(reverbIn);
 
   osc.start(t); osc.stop(t + dur + 0.05);
@@ -1118,6 +1137,9 @@ function weightedPick(notes, normRank, tonality, synnefism, driftBias, driftDept
 function firePulse(idx, t, S, voiceIdx) {
   S = S || state;
   voiceIdx = voiceIdx !== undefined ? voiceIdx : 0;
+  const vDest = voiceIdx === 0 ? (v1Gain || master)
+              : voiceIdx === 1 ? (v2Gain || master)
+              : (v3Gain || master);
   const Q = S.indis.length; if (!Q) return;
   const rank = S.indis[idx];
   const nr = Q > 1 ? rank / (Q - 1) : 1;
@@ -1172,7 +1194,7 @@ function firePulse(idx, t, S, voiceIdx) {
       const tFire = t + jOff + swingOffset;
       // Barlow duration: minimum 1.5 + nr * 1.0 scaling
       const dur = S.pulseDur * gate * (1.4 + 1.2 * nr);
-      playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan, nr);
+      playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan, nr, vDest);
       vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false, vi: voiceIdx });
       if (voiceIdx === 0) { lastFireTime = tFire; lastFireNH = note.nh || 0.5; }
     } else { S.lastWasRest = true; }
@@ -1189,7 +1211,7 @@ function firePulse(idx, t, S, voiceIdx) {
       const tFire = t + jOff;
       // Bass also follows curved rank velocity
       const bassDur = S.pulseDur * 2.0;
-      playNote(bn.freq / 2, bassDur, P.bassVel * 0.12, tFire, 'sine', true, null);
+      playNote(bn.freq / 2, bassDur, P.bassVel * 0.12, tFire, 'sine', true, null, null, vDest);
       if (voiceIdx === 0 && midiOut) {
         const bmn = Math.max(0, Math.min(127, freqToMidi(bn.freq / 2)));
         const bvel = Math.max(1, Math.min(80, Math.round(P.bassVel * 64)));
@@ -1785,7 +1807,7 @@ function rebuildState() {
   state.driftDepth = P.driftDepth;
   state.velocityDepth = P.velocityDepth;
   state.tonicMult = state.tonicMult ?? 1;
-  if (master) master.gain.value = P.volume;
+  if (master && !audioMuted) master.gain.value = P.volume;
   updateStatus();
 }
 rebuildState();
@@ -2322,6 +2344,22 @@ document.querySelectorAll('.scale-lock-btn').forEach(btn => {
   });
 });
 
+document.getElementById('btn-aud').addEventListener('click', () => {
+  audioMuted = !audioMuted;
+  document.getElementById('btn-aud').classList.toggle('muted', audioMuted);
+  if (master) master.gain.setTargetAtTime(audioMuted ? 0 : P.volume, AC.currentTime, 0.02);
+});
+
+document.querySelectorAll('.sb-mute-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    const i = parseInt(dot.dataset.vmute);
+    voiceMuted[i] = !voiceMuted[i];
+    dot.classList.toggle('muted', voiceMuted[i]);
+    const gain = i === 0 ? v1Gain : i === 1 ? v2Gain : v3Gain;
+    if (gain) gain.gain.setTargetAtTime(voiceMuted[i] ? 0 : 1.0, AC.currentTime, 0.02);
+  });
+});
+
 function parseStrat(s) {
   return s.trim().split(/\s+/).map(Number)
     .filter(n => Number.isFinite(n) && n >= 2 && Number.isInteger(n));
@@ -2401,7 +2439,7 @@ document.getElementById('wave').addEventListener('change', e => {
 document.getElementById('volume').addEventListener('input', e => {
   P.volume = +e.target.value;
   document.getElementById('vv').textContent = P.volume.toFixed(2);
-  if (master) master.gain.value = P.volume;
+  if (master && !audioMuted) master.gain.value = P.volume;
 });
 document.getElementById('gate').addEventListener('input', e => {
   P.gate = +e.target.value;
