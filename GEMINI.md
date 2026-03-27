@@ -41,7 +41,7 @@ qualitative musical traits are quantified and modulated in real-time.
 
 ### Timbre & Expression
 - Waveform: sine, triangle, sawtooth, karplus (per voice)
-- Karplus-Strong: physical plucked string — noise burst → feedback delay → lowpass. delayTime = 1/freq (JI-exact). playKarplus(freq, vel, dur, t, gain)
+- Karplus-Strong: physical plucked string — noise burst → feedback delay → lowpass. delayTime = 1/freq (JI-exact). playKarplus(freq, vel, dur, t, gain, kDecay, kBright, kPluck). Per-voice params: karplusDecay (decay rate), karplusBrightness (lowpass cutoff ×freq), karplusPluck (burst length 1–5 cycles). Sliders revealed only when wave=karplus.
 - Gate min/max: staccato–legato range
 - Velocity depth: 0=flat, 1=full Barlowian dynamics (indispensability-driven)
 - Echo probability: repeat last note with set probability

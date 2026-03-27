@@ -73,7 +73,7 @@ stays in panel with gold dot indicator. Click header to bring float to front.
 - ✓ Preset buttons show slot number + truncated name (8 chars, gold, ellipsis). .pslot widened to 46px, flex-column layout.
 - ✓ Preset export/import: ⬇P/⬆P buttons in state bar. exportPreset() saves presets[activeIdx] as barlowgen-<name>.barlo. importPreset() reads .barlo/.json into activeIdx, calls savePresets() + loadPreset() + renderPresets().
 
-- ✓ Karplus-Strong synthesis: physical plucked string model per voice. playKarplus(freq, vel, dur, t, gain). Noise burst → delay loop → lowpass → feedback. Pitch set by delayTime = 1/freq (JI-exact). wave dropdown: sine | triangle | sawtooth | karplus
+- ✓ Karplus-Strong synthesis: physical plucked string model per voice. playKarplus(freq, vel, dur, t, gain, kDecay, kBright, kPluck). Noise burst → delay loop → lowpass → feedback. Pitch set by delayTime = 1/freq (JI-exact). wave dropdown: sine | triangle | sawtooth | karplus. Three per-voice params in P/makeVoiceParams (karplusDecay 0.90–0.999, karplusBrightness 0.1–2.0, karplusPluck 0.0–1.0). Sliders hidden unless wave=karplus. Propagated through rebuildState/rebuildVoiceState/syncUI/syncVoiceUI.
 
 ## What still needs building
 - Rename preset slot inline (double-click to edit name on button)
