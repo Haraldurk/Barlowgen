@@ -2257,6 +2257,20 @@ function doRandomize() {
 // UI
 // ═══════════════════════════════════════════════════════════
 
+document.querySelectorAll('.vtab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const v = btn.dataset.voice;
+    document.querySelectorAll('.vtab')
+      .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.voice-panel')
+      .forEach(p => p.style.display = 'none');
+    document.querySelector(
+      `.voice-panel[data-vpanel="${v}"]`
+    ).style.display = 'block';
+  });
+});
+
 function parseStrat(s) {
   return s.trim().split(/\s+/).map(Number)
     .filter(n => Number.isFinite(n) && n >= 2 && Number.isInteger(n));
