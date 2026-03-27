@@ -48,7 +48,7 @@ qualitative musical traits are quantified and modulated in real-time.
 - bassVel: relative weight for lower-octave notes; bass shadow voice now routed to MIDI output (same channel as V1, velocity scaled by bassVel, JI-accurate via freqToMidi)
 
 ### Voices
-- V1: master voice, full parameter set in P object
+- V1: PRIMARY VOICE, full parameter set in P object
 - V2 (voiceExts[0]): independent collapsible section, own strat/scale/etc.
 - V3 (voiceExts[1]): independent collapsible section, own strat/scale/etc.
 - All three share master BPM; each has own MIDI channel

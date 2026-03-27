@@ -35,8 +35,12 @@ IBM Plex Mono font. Dark aesthetic (#03030a background, #e8c840 gold).
 - Canvas: full screen behind everything, CX = W/2
 
 ## Sections in right panel (current)
-RHYTHM · V1, HARMONY · V1, VOICE 2, VOICE 3, TIMBRE · V1, MIDI OUT, TUNING, SCORE
-Each has ▸ collapse arrow, ⓘ tooltip, ⚄ randomizer (where applicable),
+Voice tabs: PRIMARY · VOICE 2 · VOICE 3 strip at top of panel.
+Tab 0 (PRIMARY): RHYTHM, HARMONY, TIMBRE
+Tab 1 (VOICE 2): Voice 2 controls
+Tab 2 (VOICE 3): Voice 3 controls
+Always visible below tabs: MIDI OUT, TUNING, SCORE, SESSION
+Each section has ▸ collapse arrow, ⓘ tooltip, ⚄ randomizer (where applicable),
 ⤢ detach icon. Detached sections float as draggable panels; header
 stays in panel with gold dot indicator. Click header to bring float to front.
 
