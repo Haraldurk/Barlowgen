@@ -30,7 +30,11 @@ IBM Plex Mono font. Dark aesthetic (#03030a background, #e8c840 gold).
 
 ## UI layout
 - Status bar top: play | ⚄ master rand | ⊟ collapse-all | BARLOWGEN | bpm | pulses
-- Right panel 280px: fixed, scrollable, collapsible sections
+- Right panel 280px: voice tab strip (PRIMARY · VOICE 2 · VOICE 3)
+  Tab 0: RHYTHM · HARMONY · TIMBRE (PRIMARY VOICE)
+  Tab 1: VOICE 2 controls
+  Tab 2: VOICE 3 controls
+  Below tabs always: MIDI · TUNING · SCORE · SESSION (detachable)
 - State bar bottom: preset slots + morph fader + timed morph controls
 - Canvas: full screen behind everything, CX = W/2
 

@@ -76,6 +76,11 @@ qualitative musical traits are quantified and modulated in real-time.
 - IBM Plex Mono throughout
 - Tooltip system: data-tip on all controls, cursor-following #tip div
 - Section icons (ⓘ ⚄ ⤢) gold-tinted at rest, bright on hover
+- Voice tab strip at top of right panel: PRIMARY · VOICE 2 · VOICE 3
+  Tab 0 (PRIMARY): RHYTHM · HARMONY · TIMBRE
+  Tab 1: VOICE 2 controls
+  Tab 2: VOICE 3 controls
+  Always visible below: MIDI · TUNING · SCORE · SESSION
 - Detachable sections: float as draggable panels, reattach with ✕
 - Master ⚄ randomizer in status bar; per-section ⚄ icons; R key
 - Directed randomizers: each section has constrained Barlowian random logic
