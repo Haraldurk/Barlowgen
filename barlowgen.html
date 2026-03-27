@@ -1143,12 +1143,17 @@ function playNote(freq, dur, amp, t, wave, bass, chan, nr, dest) {
   }
 }
 
-function playKarplus(freq, velocity, duration, startTime, voiceGainNode) {
+function playKarplus(freq, velocity, duration, startTime, voiceGainNode,
+                     kDecay, kBright, kPluck) {
+  kDecay  = kDecay  !== undefined ? kDecay  : 0.98;
+  kBright = kBright !== undefined ? kBright : 0.5;
+  kPluck  = kPluck  !== undefined ? kPluck  : 0.5;
   const sampleRate = AC.sampleRate;
   const delayTime = 1 / freq;
 
-  // noise burst length: 2 full cycles of the pitch
-  const burstLen = Math.max(256, Math.ceil(sampleRate * delayTime * 2));
+  // noise burst: 1–5 cycles depending on pluck hardness
+  const pluckCycles = 1 + kPluck * 4;
+  const burstLen = Math.max(256, Math.ceil(sampleRate * delayTime * pluckCycles));
 
   // white noise buffer
   const buf = AC.createBuffer(1, burstLen, sampleRate);
@@ -1163,11 +1168,11 @@ function playKarplus(freq, velocity, duration, startTime, voiceGainNode) {
 
   const lp = AC.createBiquadFilter();
   lp.type = 'lowpass';
-  lp.frequency.value = freq * 0.5;
+  lp.frequency.value = freq * kBright;
   lp.Q.value = 0.5;
 
   const fb = AC.createGain();
-  fb.gain.value = 0.98;
+  fb.gain.value = kDecay;
 
   const velGain = AC.createGain();
   velGain.gain.value = (velocity / 127) * 0.7;
@@ -1291,7 +1296,10 @@ function firePulse(idx, t, S, voiceIdx) {
         const kVel = Math.max(1, Math.min(127,
           Math.round(64 + vd * (127 - 64) * Math.pow(nr, 0.5) - vd * 24 * (1 - nr))
         ));
-        playKarplus(note.freq, kVel, dur, tFire, vDest);
+        playKarplus(note.freq, kVel, dur, tFire, vDest,
+          S.karplusDecay ?? 0.98,
+          S.karplusBrightness ?? 0.5,
+          S.karplusPluck ?? 0.5);
         if (P.midiChan) {
           const mn = freqToMidi(note.freq);
           if (mn >= 0 && mn <= 127) { midiNoteOn(mn, kVel, P.midiChan, tFire); midiNoteOff(mn, P.midiChan, tFire + dur); }
@@ -1436,6 +1444,9 @@ function rebuildVoiceState(ve) {
   vs.density = vp.density;
   vs.wave = vp.wave;
   vs.gate = vp.gate;
+  vs.karplusDecay = vp.karplusDecay ?? 0.98;
+  vs.karplusBrightness = vp.karplusBrightness ?? 0.5;
+  vs.karplusPluck = vp.karplusPluck ?? 0.5;
 }
 
 // ── PRESETS ──────────────────────────────────────────────
@@ -1502,6 +1513,9 @@ function syncUI() {
   document.getElementById('wave').value = P.wave;
   const kcPrim = document.getElementById('kc-primary');
   if (kcPrim) kcPrim.style.display = P.wave === 'karplus' ? 'block' : 'none';
+  const skd = document.getElementById('sl-kDecay'); if (skd) { skd.value = P.karplusDecay??0.98; document.getElementById('val-kDecay').textContent = (P.karplusDecay??0.98).toFixed(3); }
+  const skb = document.getElementById('sl-kBright'); if (skb) { skb.value = P.karplusBrightness??0.5; document.getElementById('val-kBright').textContent = (P.karplusBrightness??0.5).toFixed(2); }
+  const skp = document.getElementById('sl-kPluck'); if (skp) { skp.value = P.karplusPluck??0.5; document.getElementById('val-kPluck').textContent = (P.karplusPluck??0.5).toFixed(2); }
   document.getElementById('volume').value = P.volume;
   document.getElementById('vv').textContent = P.volume.toFixed(2);
   document.getElementById('gate').value = P.gate;
@@ -1549,6 +1563,9 @@ function syncVoiceUI() {
     g(pfx+'-wave', vp.wave);
     const kcEl = document.getElementById(pfx === 'v2' ? 'kc-v2' : 'kc-v3');
     if (kcEl) kcEl.style.display = vp.wave === 'karplus' ? 'block' : 'none';
+    const vkd = document.getElementById('sl-kDecay-'+pfx); if (vkd) { vkd.value = vp.karplusDecay??0.98; document.getElementById('val-kDecay-'+pfx).textContent = (vp.karplusDecay??0.98).toFixed(3); }
+    const vkb = document.getElementById('sl-kBright-'+pfx); if (vkb) { vkb.value = vp.karplusBrightness??0.5; document.getElementById('val-kBright-'+pfx).textContent = (vp.karplusBrightness??0.5).toFixed(2); }
+    const vkp = document.getElementById('sl-kPluck-'+pfx); if (vkp) { vkp.value = vp.karplusPluck??0.5; document.getElementById('val-kPluck-'+pfx).textContent = (vp.karplusPluck??0.5).toFixed(2); }
     g(pfx+'-chan', vp.midiChan);
     const enCb = document.getElementById(pfx+'-en');
     if (enCb) enCb.checked = vp.enabled;
@@ -1920,6 +1937,9 @@ function rebuildState() {
   state.driftRate = P.driftRate;
   state.driftDepth = P.driftDepth;
   state.velocityDepth = P.velocityDepth;
+  state.karplusDecay = P.karplusDecay ?? 0.98;
+  state.karplusBrightness = P.karplusBrightness ?? 0.5;
+  state.karplusPluck = P.karplusPluck ?? 0.5;
   state.tonicMult = state.tonicMult ?? 1;
   if (master && !audioMuted) master.gain.value = P.volume;
   updateStatus();
@@ -2561,6 +2581,18 @@ document.getElementById('wave').addEventListener('change', e => {
   P.wave = e.target.value; state.wave = P.wave;
   document.getElementById('kc-primary').style.display = P.wave === 'karplus' ? 'block' : 'none';
 });
+document.getElementById('sl-kDecay').addEventListener('input', function() {
+  P.karplusDecay = parseFloat(this.value); state.karplusDecay = P.karplusDecay;
+  document.getElementById('val-kDecay').textContent = P.karplusDecay.toFixed(3);
+});
+document.getElementById('sl-kBright').addEventListener('input', function() {
+  P.karplusBrightness = parseFloat(this.value); state.karplusBrightness = P.karplusBrightness;
+  document.getElementById('val-kBright').textContent = P.karplusBrightness.toFixed(2);
+});
+document.getElementById('sl-kPluck').addEventListener('input', function() {
+  P.karplusPluck = parseFloat(this.value); state.karplusPluck = P.karplusPluck;
+  document.getElementById('val-kPluck').textContent = P.karplusPluck.toFixed(2);
+});
 document.getElementById('volume').addEventListener('input', e => {
   P.volume = +e.target.value;
   document.getElementById('vv').textContent = P.volume.toFixed(2);
@@ -2780,6 +2812,18 @@ document.getElementById('phrase-loop-ind')?.addEventListener('click', () => {
   });
   document.getElementById(pfx+'-chan').addEventListener('change', e => {
     ve.params.midiChan = +e.target.value;
+  });
+  document.getElementById('sl-kDecay-'+pfx).addEventListener('input', function() {
+    ve.params.karplusDecay = parseFloat(this.value); ve.state.karplusDecay = ve.params.karplusDecay;
+    document.getElementById('val-kDecay-'+pfx).textContent = ve.params.karplusDecay.toFixed(3);
+  });
+  document.getElementById('sl-kBright-'+pfx).addEventListener('input', function() {
+    ve.params.karplusBrightness = parseFloat(this.value); ve.state.karplusBrightness = ve.params.karplusBrightness;
+    document.getElementById('val-kBright-'+pfx).textContent = ve.params.karplusBrightness.toFixed(2);
+  });
+  document.getElementById('sl-kPluck-'+pfx).addEventListener('input', function() {
+    ve.params.karplusPluck = parseFloat(this.value); ve.state.karplusPluck = ve.params.karplusPluck;
+    document.getElementById('val-kPluck-'+pfx).textContent = ve.params.karplusPluck.toFixed(2);
   });
 });
 
