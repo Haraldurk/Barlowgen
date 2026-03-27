@@ -1440,6 +1440,10 @@ function syncVoiceUI() {
     g(pfx+'-density', vp.density);     s(pfx+'-density-v', vp.density.toFixed(2));
     g(pfx+'-wave', vp.wave);
     g(pfx+'-chan', vp.midiChan);
+    const enCb = document.getElementById(pfx+'-en');
+    if (enCb) enCb.checked = vp.enabled;
+    const dot = document.querySelector(`.sb-mute-dot[data-vmute="${vi + 1}"]`);
+    if (dot) dot.classList.toggle('muted', !vp.enabled);
   });
 }
 
@@ -2353,10 +2357,20 @@ document.getElementById('btn-aud').addEventListener('click', () => {
 document.querySelectorAll('.sb-mute-dot').forEach(dot => {
   dot.addEventListener('click', () => {
     const i = parseInt(dot.dataset.vmute);
-    voiceMuted[i] = !voiceMuted[i];
-    dot.classList.toggle('muted', voiceMuted[i]);
-    const gain = i === 0 ? v1Gain : i === 1 ? v2Gain : v3Gain;
-    if (gain) gain.gain.setTargetAtTime(voiceMuted[i] ? 0 : 1.0, AC.currentTime, 0.02);
+    if (i === 0) {
+      // V1: audio mute only (no enable checkbox)
+      voiceMuted[0] = !voiceMuted[0];
+      dot.classList.toggle('muted', voiceMuted[0]);
+      if (v1Gain) v1Gain.gain.setTargetAtTime(voiceMuted[0] ? 0 : 1.0, AC.currentTime, 0.02);
+    } else {
+      // V2/V3: toggle voice enable
+      const ve = voiceExts[i - 1];
+      ve.params.enabled = !ve.params.enabled;
+      dot.classList.toggle('muted', !ve.params.enabled);
+      const cb = document.getElementById(i === 1 ? 'v2-en' : 'v3-en');
+      if (cb) cb.checked = ve.params.enabled;
+      if (ve.params.enabled) rebuildVoiceState(ve);
+    }
   });
 });
 
@@ -2600,6 +2614,8 @@ document.getElementById('phrase-loop-ind')?.addEventListener('click', () => {
   document.getElementById(pfx+'-en').addEventListener('change', e => {
     ve.params.enabled = e.target.checked;
     if (e.target.checked) rebuildVoiceState(ve);
+    const dot = document.querySelector(`.sb-mute-dot[data-vmute="${vi + 1}"]`);
+    if (dot) dot.classList.toggle('muted', !ve.params.enabled);
   });
   document.getElementById(pfx+'-strat').addEventListener('change', e => {
     const s = e.target.value.trim().split(/\s+/).map(Number).filter(n => n >= 2);
