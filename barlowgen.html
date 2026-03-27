@@ -183,6 +183,30 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 .pslot.morph-b { border-color: rgba(200,60,200,0.6); color: #e040e0; }
 #morph-row { display: flex; align-items: center; gap: 5px; font-size: 9px; color: #2a2a50; }
 #morph-row input[type=range] { width: 60px; }
+
+#voice-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(232,200,64,0.3);
+  margin-bottom: 6px;
+}
+.vtab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(160,165,190,0.5);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 6px 0;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.vtab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.voice-panel { display: block; }
 </style>
 </head>
 <body>
@@ -207,6 +231,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 </div>
 
 <div id="panel">
+  <div id="voice-tabs">
+    <button class="vtab active" data-voice="0">PRIMARY</button>
+    <button class="vtab" data-voice="1">VOICE 2</button>
+    <button class="vtab" data-voice="2">VOICE 3</button>
+  </div>
   <!-- RHYTHM -->
   <div class="sec-hdr open" id="hdr-rhythm" onclick="toggleSec(this)">
     <span class="sec-icon">&#9656;</span>
