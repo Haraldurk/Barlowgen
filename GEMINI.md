@@ -40,7 +40,8 @@ qualitative musical traits are quantified and modulated in real-time.
 - Synnefism: blends harmonicity weighting toward uniform
 
 ### Timbre & Expression
-- Waveform: sine, triangle, sawtooth (per voice)
+- Waveform: sine, triangle, sawtooth, karplus (per voice)
+- Karplus-Strong: physical plucked string — noise burst → feedback delay → lowpass. delayTime = 1/freq (JI-exact). playKarplus(freq, vel, dur, t, gain)
 - Gate min/max: staccato–legato range
 - Velocity depth: 0=flat, 1=full Barlowian dynamics (indispensability-driven)
 - Echo probability: repeat last note with set probability
