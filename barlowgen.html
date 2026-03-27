@@ -183,6 +183,8 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 .pslot.morph-b { border-color: rgba(200,60,200,0.6); color: #e040e0; }
 #morph-row { display: flex; align-items: center; gap: 5px; font-size: 9px; color: #2a2a50; }
 #morph-row input[type=range] { width: 60px; }
+.pnum { font-size:8px; opacity:0.45; line-height:1.2; display:block; }
+.pname { font-size:8px; color:#e8c840; line-height:1.2; display:block; overflow:hidden; white-space:nowrap; max-width:42px; text-overflow:ellipsis; }
 
 #voice-tabs {
   display: flex;
@@ -1494,12 +1496,14 @@ function renderPresets() {
   presets.forEach((p, i) => {
     const slot = document.createElement('div');
     slot.className = 'pslot' + (p.data ? ' saved' : '') + (i === activeIdx ? ' active' : '') + (i === morphBIdx ? ' morph-b' : '');
-    const label = p.name ? p.name.slice(0, 8) : '';
-    slot.innerHTML = `<span style="font-size:8px;opacity:0.45;line-height:1.2;display:block">${i+1}</span>`
-      + `<span style="font-size:8px;color:#e8c840;line-height:1.2;display:block;`
-      + `overflow:hidden;white-space:nowrap;max-width:42px;text-overflow:ellipsis;`
-      + `opacity:${label ? '1' : '0'}">${label || '.'}</span>`;
-    slot.title = p.name || ('P'+(i+1));
+    const num = i + 1;
+    const name = p.name || '';
+    if (name) {
+      slot.innerHTML = `<span class="pnum">${num}</span><span class="pname">${name.slice(0,8)}</span>`;
+    } else {
+      slot.textContent = num;
+    }
+    slot.title = name || String(num);
     slot.addEventListener('click', e => {
       if (e.shiftKey) {
         morphBIdx = i;
