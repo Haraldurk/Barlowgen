@@ -207,6 +207,14 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
   border-bottom-color: var(--accent);
 }
 .voice-panel { display: block; }
+.scale-lock-btn {
+  background: none; border: none;
+  color: rgba(160,165,190,0.5);
+  cursor: pointer; font-size: 11px;
+  padding: 0 3px; vertical-align: middle;
+  opacity: 0.5; transition: opacity 0.15s;
+}
+.scale-lock-btn.locked { color: var(--accent); opacity: 1.0; }
 </style>
 </head>
 <body>
@@ -417,48 +425,54 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     </div>
     <div class="row">
       <div class="lbl"><span>scale</span></div>
-      <select id="v2-scale">
-        <optgroup label="— western">
-          <option value="major">major (just intonation)</option>
-          <option value="minor">minor (just intonation)</option>
-          <option value="pentatonic">pentatonic</option>
-          <option value="pythagorean">pythagorean</option>
-          <option value="chromatic">chromatic (just)</option>
-          <option value="wholetone">whole tone</option>
-        </optgroup>
-        <optgroup label="— modes">
-          <option value="dorian">dorian</option>
-          <option value="phrygian">phrygian</option>
-          <option value="lydian">lydian</option>
-          <option value="mixolydian">mixolydian</option>
-          <option value="phrygianDom">phrygian dominant</option>
-          <option value="lydianDom">lydian dominant</option>
-          <option value="doubleHarmonic">double harmonic</option>
-          <option value="hungarianMinor">hungarian minor</option>
-          <option value="octatonic">octatonic</option>
-        </optgroup>
-        <optgroup label="— directional ↑↓">
-          <option value="melodicMinor">melodic minor ↑↓</option>
-          <option value="kafi">kafi ↑↓</option>
-          <option value="todi">todi ↑↓</option>
-          <option value="marwa">marwa ↑↓</option>
-          <option value="bhimpalasi">bhimpalasi ↑↓</option>
-          <option value="yaman">yaman</option>
-          <option value="bhairavi">bhairavi</option>
-        </optgroup>
-        <optgroup label="— japanese">
-          <option value="hirajoshi">hirajoshi</option>
-          <option value="insen">insen</option>
-        </optgroup>
-      </select>
+      <div style="display:flex;gap:4px;align-items:center">
+        <select id="v2-scale">
+          <optgroup label="— western">
+            <option value="major">major (just intonation)</option>
+            <option value="minor">minor (just intonation)</option>
+            <option value="pentatonic">pentatonic</option>
+            <option value="pythagorean">pythagorean</option>
+            <option value="chromatic">chromatic (just)</option>
+            <option value="wholetone">whole tone</option>
+          </optgroup>
+          <optgroup label="— modes">
+            <option value="dorian">dorian</option>
+            <option value="phrygian">phrygian</option>
+            <option value="lydian">lydian</option>
+            <option value="mixolydian">mixolydian</option>
+            <option value="phrygianDom">phrygian dominant</option>
+            <option value="lydianDom">lydian dominant</option>
+            <option value="doubleHarmonic">double harmonic</option>
+            <option value="hungarianMinor">hungarian minor</option>
+            <option value="octatonic">octatonic</option>
+          </optgroup>
+          <optgroup label="— directional ↑↓">
+            <option value="melodicMinor">melodic minor ↑↓</option>
+            <option value="kafi">kafi ↑↓</option>
+            <option value="todi">todi ↑↓</option>
+            <option value="marwa">marwa ↑↓</option>
+            <option value="bhimpalasi">bhimpalasi ↑↓</option>
+            <option value="yaman">yaman</option>
+            <option value="bhairavi">bhairavi</option>
+          </optgroup>
+          <optgroup label="— japanese">
+            <option value="hirajoshi">hirajoshi</option>
+            <option value="insen">insen</option>
+          </optgroup>
+        </select>
+        <button class="scale-lock-btn" data-vlock="0" title="Lock scale to PRIMARY VOICE">🔓</button>
+      </div>
     </div>
     <div class="row">
       <div class="lbl"><span>tonic</span></div>
-      <select id="v2-tonic">
-        <option>C</option><option>C#</option><option>D</option><option>D#</option>
-        <option>E</option><option>F</option><option>F#</option><option>G</option>
-        <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
-      </select>
+      <div style="display:flex;gap:4px;align-items:center">
+        <select id="v2-tonic">
+          <option>C</option><option>C#</option><option>D</option><option>D#</option>
+          <option>E</option><option>F</option><option>F#</option><option>G</option>
+          <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
+        </select>
+        <button class="scale-lock-btn tonic-lock-btn" data-vlock="0" title="Lock tonic to PRIMARY VOICE">🔓</button>
+      </div>
     </div>
     <div class="row">
       <div class="lbl"><span>octave</span><span id="v2ov">3</span></div>
@@ -526,48 +540,54 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     </div>
     <div class="row">
       <div class="lbl"><span>scale</span></div>
-      <select id="v3-scale">
-        <optgroup label="— western">
-          <option value="major">major (just intonation)</option>
-          <option value="minor">minor (just intonation)</option>
-          <option value="pentatonic">pentatonic</option>
-          <option value="pythagorean">pythagorean</option>
-          <option value="chromatic">chromatic (just)</option>
-          <option value="wholetone">whole tone</option>
-        </optgroup>
-        <optgroup label="— modes">
-          <option value="dorian">dorian</option>
-          <option value="phrygian">phrygian</option>
-          <option value="lydian">lydian</option>
-          <option value="mixolydian">mixolydian</option>
-          <option value="phrygianDom">phrygian dominant</option>
-          <option value="lydianDom">lydian dominant</option>
-          <option value="doubleHarmonic">double harmonic</option>
-          <option value="hungarianMinor">hungarian minor</option>
-          <option value="octatonic">octatonic</option>
-        </optgroup>
-        <optgroup label="— directional ↑↓">
-          <option value="melodicMinor">melodic minor ↑↓</option>
-          <option value="kafi">kafi ↑↓</option>
-          <option value="todi">todi ↑↓</option>
-          <option value="marwa">marwa ↑↓</option>
-          <option value="bhimpalasi">bhimpalasi ↑↓</option>
-          <option value="yaman">yaman</option>
-          <option value="bhairavi">bhairavi</option>
-        </optgroup>
-        <optgroup label="— japanese">
-          <option value="hirajoshi">hirajoshi</option>
-          <option value="insen">insen</option>
-        </optgroup>
-      </select>
+      <div style="display:flex;gap:4px;align-items:center">
+        <select id="v3-scale">
+          <optgroup label="— western">
+            <option value="major">major (just intonation)</option>
+            <option value="minor">minor (just intonation)</option>
+            <option value="pentatonic">pentatonic</option>
+            <option value="pythagorean">pythagorean</option>
+            <option value="chromatic">chromatic (just)</option>
+            <option value="wholetone">whole tone</option>
+          </optgroup>
+          <optgroup label="— modes">
+            <option value="dorian">dorian</option>
+            <option value="phrygian">phrygian</option>
+            <option value="lydian">lydian</option>
+            <option value="mixolydian">mixolydian</option>
+            <option value="phrygianDom">phrygian dominant</option>
+            <option value="lydianDom">lydian dominant</option>
+            <option value="doubleHarmonic">double harmonic</option>
+            <option value="hungarianMinor">hungarian minor</option>
+            <option value="octatonic">octatonic</option>
+          </optgroup>
+          <optgroup label="— directional ↑↓">
+            <option value="melodicMinor">melodic minor ↑↓</option>
+            <option value="kafi">kafi ↑↓</option>
+            <option value="todi">todi ↑↓</option>
+            <option value="marwa">marwa ↑↓</option>
+            <option value="bhimpalasi">bhimpalasi ↑↓</option>
+            <option value="yaman">yaman</option>
+            <option value="bhairavi">bhairavi</option>
+          </optgroup>
+          <optgroup label="— japanese">
+            <option value="hirajoshi">hirajoshi</option>
+            <option value="insen">insen</option>
+          </optgroup>
+        </select>
+        <button class="scale-lock-btn" data-vlock="1" title="Lock scale to PRIMARY VOICE">🔓</button>
+      </div>
     </div>
     <div class="row">
       <div class="lbl"><span>tonic</span></div>
-      <select id="v3-tonic">
-        <option>C</option><option>C#</option><option>D</option><option>D#</option>
-        <option>E</option><option>F</option><option>F#</option><option>G</option>
-        <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
-      </select>
+      <div style="display:flex;gap:4px;align-items:center">
+        <select id="v3-tonic">
+          <option>C</option><option>C#</option><option>D</option><option>D#</option>
+          <option>E</option><option>F</option><option>F#</option><option>G</option>
+          <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
+        </select>
+        <button class="scale-lock-btn tonic-lock-btn" data-vlock="1" title="Lock tonic to PRIMARY VOICE">🔓</button>
+      </div>
     </div>
     <div class="row">
       <div class="lbl"><span>octave</span><span id="v3ov">3</span></div>
@@ -1286,6 +1306,7 @@ function rebuildVoiceState(ve) {
 // ── PRESETS ──────────────────────────────────────────────
 let presets = [];
 let activeIdx = -1;
+let scaleLock = [false, false]; // [v2locked, v3locked]
 let morphBIdx = -1;
 let morphTween = null;
 let morphPos = 0;
@@ -2271,6 +2292,23 @@ document.querySelectorAll('.vtab').forEach(btn => {
   });
 });
 
+document.querySelectorAll('.scale-lock-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const i = parseInt(btn.dataset.vlock);
+    scaleLock[i] = !scaleLock[i];
+    document.querySelectorAll(`.scale-lock-btn[data-vlock="${i}"]`).forEach(b => {
+      b.classList.toggle('locked', scaleLock[i]);
+      b.textContent = scaleLock[i] ? '🔒' : '🔓';
+    });
+    if (scaleLock[i]) {
+      voiceExts[i].params.scale = P.scale;
+      voiceExts[i].params.tonic = P.tonic;
+      syncVoiceUI();
+      rebuildVoiceState(voiceExts[i]);
+    }
+  });
+});
+
 function parseStrat(s) {
   return s.trim().split(/\s+/).map(Number)
     .filter(n => Number.isFinite(n) && n >= 2 && Number.isInteger(n));
@@ -2318,9 +2356,15 @@ document.getElementById('bpm').addEventListener('input', e => {
 });
 document.getElementById('scale').addEventListener('change', e => {
   P.scale = e.target.value; rebuildState();
+  [0,1].forEach(i => {
+    if (scaleLock[i]) { voiceExts[i].params.scale = P.scale; rebuildVoiceState(voiceExts[i]); syncVoiceUI(); }
+  });
 });
 document.getElementById('tonic').addEventListener('change', e => {
   P.tonic = e.target.value; rebuildState();
+  [0,1].forEach(i => {
+    if (scaleLock[i]) { voiceExts[i].params.tonic = P.tonic; rebuildVoiceState(voiceExts[i]); syncVoiceUI(); }
+  });
 });
 document.getElementById('octave').addEventListener('input', e => {
   P.octave = +e.target.value;
@@ -2711,7 +2755,8 @@ function saveSession() {
     v2: Object.assign({}, voiceExts[0].params),
     v3: Object.assign({}, voiceExts[1].params),
     presets: presets.map(p => Object.assign({}, p)),
-    score: scoreData
+    score: scoreData,
+    scaleLock: scaleLock.slice()
   };
   const blob = new Blob([JSON.stringify(session, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
@@ -2752,6 +2797,13 @@ function loadSession(file) {
         if (el) el.value = val;
       });
     }
+    scaleLock = data.scaleLock ?? [false, false];
+    [0,1].forEach(i => {
+      document.querySelectorAll(`.scale-lock-btn[data-vlock="${i}"]`).forEach(b => {
+        b.classList.toggle('locked', scaleLock[i]);
+        b.textContent = scaleLock[i] ? '🔒' : '🔓';
+      });
+    });
     syncUI(); syncVoiceUI(); rebuildState();
     rebuildVoiceState(voiceExts[0]);
     rebuildVoiceState(voiceExts[1]);
