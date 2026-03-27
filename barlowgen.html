@@ -1244,7 +1244,19 @@ function firePulse(idx, t, S, voiceIdx) {
       const tFire = t + jOff + swingOffset;
       // Barlow duration: minimum 1.5 + nr * 1.0 scaling
       const dur = S.pulseDur * gate * (1.4 + 1.2 * nr);
-      playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan, nr, vDest);
+      if (S.wave === 'karplus') {
+        const vd = S.velocityDepth !== undefined ? S.velocityDepth : (P.velocityDepth || 0.7);
+        const kVel = Math.max(1, Math.min(127,
+          Math.round(64 + vd * (127 - 64) * Math.pow(nr, 0.5) - vd * 24 * (1 - nr))
+        ));
+        playKarplus(note.freq, kVel, dur, tFire, vDest);
+        if (P.midiChan) {
+          const mn = freqToMidi(note.freq);
+          if (mn >= 0 && mn <= 127) { midiNoteOn(mn, kVel, P.midiChan, tFire); midiNoteOff(mn, P.midiChan, tFire + dur); }
+        }
+      } else {
+        playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan, nr, vDest);
+      }
       vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false, vi: voiceIdx });
       if (voiceIdx === 0) { lastFireTime = tFire; lastFireNH = note.nh || 0.5; }
     } else { S.lastWasRest = true; }
