@@ -763,7 +763,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
 <div id="state-bar">
   <button id="p-add">+</button>
   <div id="pslots-wrap" style="display:flex;gap:3px;flex-wrap:wrap" data-tip="Preset slots — click + to save current state. Left-click to load (A). Right-click to set as morph target (B). Stores V1, V2, V3 parameters."></div>
-  <button id="btn-export-preset" title="Export active preset as .barlo file" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬇P</button>
+  <button id="btn-export-preset" title="Export all presets to .barlo file" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬇ALL</button>
   <button id="btn-import-preset" title="Import preset from .barlo file into active slot" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬆P</button>
   <input type="file" id="input-import-preset" accept=".barlo,.json" style="display:none">
   <div id="morph-row" class="hidden">
@@ -2818,24 +2818,14 @@ function loadSession(file) {
   reader.readAsText(file);
 }
 
-function exportPreset() {
-  if (activeIdx < 0 || !presets[activeIdx] || !presets[activeIdx].data) {
-    const st = document.getElementById('session-status');
-    if (st) st.textContent = 'No active preset to export';
-    return;
-  }
-  const slot = presets[activeIdx];
-  const data = {
-    barlowgen: '1.2',
-    type: 'preset',
-    savedAt: new Date().toISOString(),
-    preset: slot
-  };
-  const name = (slot.name || 'preset').replace(/\s+/g, '-').toLowerCase();
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+function exportAllPresets() {
+  const blob = new Blob(
+    [JSON.stringify({ barlowgen: '1.2', presets: presets }, null, 2)],
+    { type: 'application/json' }
+  );
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'barlowgen-' + name + '.barlo';
+  a.download = 'barlowgen-presets.barlo';
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -2845,9 +2835,18 @@ function importPreset(file) {
   reader.onload = e => {
     let data;
     try { data = JSON.parse(e.target.result); } catch { return; }
-    if (!data.preset) return;
     const idx = activeIdx >= 0 ? activeIdx : 0;
-    presets[idx] = data.preset;
+    if (data.presets && Array.isArray(data.presets)) {
+      // all-presets format
+      presets.length = 0;
+      data.presets.forEach(p => presets.push(p));
+    } else if (data.preset) {
+      // single preset format (old .barlo files)
+      presets[idx] = data.preset;
+    } else {
+      // raw slot object
+      presets[idx] = data;
+    }
     savePresets();
     loadPreset(idx);
     renderPresets();
@@ -2855,7 +2854,7 @@ function importPreset(file) {
   reader.readAsText(file);
 }
 
-document.getElementById('btn-export-preset').addEventListener('click', exportPreset);
+document.getElementById('btn-export-preset').addEventListener('click', exportAllPresets);
 document.getElementById('btn-import-preset').addEventListener('click', () => {
   document.getElementById('input-import-preset').click();
 });
