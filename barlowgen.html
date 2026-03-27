@@ -236,6 +236,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <button class="vtab" data-voice="1">VOICE 2</button>
     <button class="vtab" data-voice="2">VOICE 3</button>
   </div>
+  <div class="voice-panel" data-vpanel="0">
   <!-- RHYTHM -->
   <div class="sec-hdr open" id="hdr-rhythm" onclick="toggleSec(this)">
     <span class="sec-icon">&#9656;</span>
@@ -342,6 +343,51 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
     <div class="row"><div class="lbl"><span>complexity</span><span id="complexity-v">1.00</span></div><input type="range" id="complexity" data-param="complexity" min="0" max="1" step="0.01" value="1.0"></div>
   </div>
 
+  <!-- TIMBRE -->
+  <div class="sec-hdr" id="hdr-timbre" onclick="toggleSec(this)">
+    <span class="sec-icon">&#9656;</span>
+    <span class="sec-title">Timbre</span>
+    <span class="sec-help" data-tip="Waveform, dynamics, and expressiveness. Swing, rest clustering, echo probability, and drift shape the musical personality."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
+    <div class="sec-tooltip"></div>
+    <span class="sec-rand" data-sec="timbre" title="randomize timbre">⚄</span>
+    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('timbre')">&#10530;</span>
+  </div>
+  <div id="body-timbre" class="sec-body">
+    <div class="row">
+      <div class="lbl"><span>wave</span></div>
+      <select id="wave">
+        <option value="sine">sine</option>
+        <option value="triangle" selected>triangle</option>
+        <option value="sawtooth">sawtooth</option>
+      </select>
+    </div>
+    <div class="row">
+      <div class="lbl"><span>volume</span><span id="vv">0.50</span></div>
+      <input type="range" id="volume" data-param="volume" min="0" max="1" step="0.01" value="0.5">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>gate</span><span id="gv">0.80</span></div>
+      <input type="range" id="gate" data-param="gate" min="0.05" max="1" step="0.01" value="0.8">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>jitter</span><span id="jv">0.00</span></div>
+      <input type="range" id="jitter" data-param="jitter" min="0" max="1" step="0.01" value="0">
+    </div>
+    <div class="row">
+      <div class="lbl"><span>bass vel</span><span id="bsv">0.50</span></div>
+      <input type="range" id="bassVel" data-param="bassVel" min="0" max="1" step="0.01" value="0.5">
+    </div>
+    <div style="text-align:right;margin-bottom:4px"><span class="sec-rand inline" data-sec="expression" title="randomize expression">⚄ expression</span></div>
+    <div class="row"><div class="lbl"><span>swing</span><span id="swing-v">0.00</span></div><input type="range" id="swing" data-param="swing" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>rest cluster</span><span id="restCluster-v">0.00</span></div><input type="range" id="restCluster" data-param="restCluster" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>echo prob</span><span id="echoProbability-v">0.00</span></div><input type="range" id="echoProbability" data-param="echoProbability" min="0" max="1" step="0.01" value="0"></div>
+    <div style="text-align:right;margin:6px 0 4px"><span class="sec-rand inline" data-sec="drift" title="randomize drift">⚄ drift</span></div>
+    <div class="row"><div class="lbl"><span>drift rate</span><span id="driftRate-v">0.00</span></div><input type="range" id="driftRate" data-param="driftRate" min="0" max="1" step="0.01" value="0"></div>
+    <div class="row"><div class="lbl"><span>drift depth</span><span id="driftDepth-v">0.50</span></div><input type="range" id="driftDepth" data-param="driftDepth" min="0" max="1" step="0.01" value="0.5"></div>
+  </div>
+  </div><!-- /voice-panel 0 -->
+
+  <div class="voice-panel" data-vpanel="1" style="display:none">
   <!-- VOICE 2 -->
   <div class="sec-hdr" id="hdr-voice2" onclick="toggleSec(this)">
     <span class="sec-icon">&#9656;</span>
@@ -448,7 +494,9 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
       </select>
     </div>
   </div>
+  </div><!-- /voice-panel 1 -->
 
+  <div class="voice-panel" data-vpanel="2" style="display:none">
   <!-- VOICE 3 -->
   <div class="sec-hdr" id="hdr-voice3" onclick="toggleSec(this)">
     <span class="sec-icon">&#9656;</span>
@@ -555,49 +603,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
       </select>
     </div>
   </div>
-
-  <!-- TIMBRE -->
-  <div class="sec-hdr" id="hdr-timbre" onclick="toggleSec(this)">
-    <span class="sec-icon">&#9656;</span>
-    <span class="sec-title">Timbre</span>
-    <span class="sec-help" data-tip="Waveform, dynamics, and expressiveness. Swing, rest clustering, echo probability, and drift shape the musical personality."><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="currentColor" stroke-width="1"/><text x="6.5" y="10" text-anchor="middle" font-size="8" font-family="IBM Plex Mono" fill="currentColor">i</text></svg></span>
-    <div class="sec-tooltip"></div>
-    <span class="sec-rand" data-sec="timbre" title="randomize timbre">⚄</span>
-    <span class="sec-detach" title="Detach panel" onclick="event.stopPropagation();detachSec('timbre')">&#10530;</span>
-  </div>
-  <div id="body-timbre" class="sec-body">
-    <div class="row">
-      <div class="lbl"><span>wave</span></div>
-      <select id="wave">
-        <option value="sine">sine</option>
-        <option value="triangle" selected>triangle</option>
-        <option value="sawtooth">sawtooth</option>
-      </select>
-    </div>
-    <div class="row">
-      <div class="lbl"><span>volume</span><span id="vv">0.50</span></div>
-      <input type="range" id="volume" data-param="volume" min="0" max="1" step="0.01" value="0.5">
-    </div>
-    <div class="row">
-      <div class="lbl"><span>gate</span><span id="gv">0.80</span></div>
-      <input type="range" id="gate" data-param="gate" min="0.05" max="1" step="0.01" value="0.8">
-    </div>
-    <div class="row">
-      <div class="lbl"><span>jitter</span><span id="jv">0.00</span></div>
-      <input type="range" id="jitter" data-param="jitter" min="0" max="1" step="0.01" value="0">
-    </div>
-    <div class="row">
-      <div class="lbl"><span>bass vel</span><span id="bsv">0.50</span></div>
-      <input type="range" id="bassVel" data-param="bassVel" min="0" max="1" step="0.01" value="0.5">
-    </div>
-    <div style="text-align:right;margin-bottom:4px"><span class="sec-rand inline" data-sec="expression" title="randomize expression">⚄ expression</span></div>
-    <div class="row"><div class="lbl"><span>swing</span><span id="swing-v">0.00</span></div><input type="range" id="swing" data-param="swing" min="0" max="1" step="0.01" value="0"></div>
-    <div class="row"><div class="lbl"><span>rest cluster</span><span id="restCluster-v">0.00</span></div><input type="range" id="restCluster" data-param="restCluster" min="0" max="1" step="0.01" value="0"></div>
-    <div class="row"><div class="lbl"><span>echo prob</span><span id="echoProbability-v">0.00</span></div><input type="range" id="echoProbability" data-param="echoProbability" min="0" max="1" step="0.01" value="0"></div>
-    <div style="text-align:right;margin:6px 0 4px"><span class="sec-rand inline" data-sec="drift" title="randomize drift">⚄ drift</span></div>
-    <div class="row"><div class="lbl"><span>drift rate</span><span id="driftRate-v">0.00</span></div><input type="range" id="driftRate" data-param="driftRate" min="0" max="1" step="0.01" value="0"></div>
-    <div class="row"><div class="lbl"><span>drift depth</span><span id="driftDepth-v">0.50</span></div><input type="range" id="driftDepth" data-param="driftDepth" min="0" max="1" step="0.01" value="0.5"></div>
-  </div>
+  </div><!-- /voice-panel 2 -->
 
   <!-- MIDI -->
   <div class="sec-hdr" id="hdr-midi" onclick="toggleSec(this)">
