@@ -771,7 +771,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
   <button id="p-add">+</button>
   <div id="pslots-wrap" style="display:flex;gap:3px;flex-wrap:wrap" data-tip="Preset slots — click + to save current state. Left-click to load (A). Right-click to set as morph target (B). Stores V1, V2, V3 parameters."></div>
   <button id="btn-export-preset" title="Export all presets to .barlo file" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬇ALL</button>
-  <button id="btn-import-preset" title="Import all presets from .barlo file" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬆P</button>
+  <button id="btn-import-preset" title="Import all presets from .barlo file" style="padding:2px 6px;font-size:10px;font-family:var(--mono);background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:3px;color:#404070;cursor:pointer">⬆</button>
   <input type="file" id="input-import-preset" accept=".barlo,.json" style="display:none">
   <div id="morph-row" class="hidden">
     <span data-tip="Drag to interpolate between preset A (left-click active) and preset B (right-click active). All numeric parameters blend continuously; scale/tonic snap at midpoint.">A</span><input type="range" id="morph-fader" min="0" max="1" step="0.001" value="0">B
@@ -1323,6 +1323,8 @@ let morphPos = 0;
 try {
   presets = JSON.parse(localStorage.getItem('barlowgen_presets') || '[]');
 } catch(e) { presets = []; }
+// migrate: strip legacy "P1"–"P99" default names written by older versions
+presets.forEach(p => { if (p.name && /^P\d+$/.test(p.name)) p.name = ''; });
 if (!presets.length) {
   for (let i = 0; i < 8; i++) presets.push({ name: '', data: null });
   savePresets();
@@ -1509,7 +1511,7 @@ function renderPresets() {
     const slot = document.createElement('div');
     slot.className = 'pslot' + (p.data ? ' saved' : '') + (i === activeIdx ? ' active' : '') + (i === morphBIdx ? ' morph-b' : '');
     const num = i + 1;
-    const name = p.name || '';
+    const name = (p.name && !/^P\d+$/.test(p.name)) ? p.name : '';
     if (name) {
       slot.innerHTML = `<span class="pnum">${num}</span><span class="pname">${name.slice(0,8)}</span>`;
     } else {
