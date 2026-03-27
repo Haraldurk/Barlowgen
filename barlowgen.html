@@ -292,48 +292,54 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
   <div id="body-harmony" class="sec-body open">
     <div class="row">
       <div class="lbl"><span>scale</span></div>
-      <select id="scale">
-        <optgroup label="— western">
-          <option value="major">major (just intonation)</option>
-          <option value="minor">minor (just intonation)</option>
-          <option value="pentatonic">pentatonic</option>
-          <option value="pythagorean">pythagorean</option>
-          <option value="chromatic">chromatic (just)</option>
-          <option value="wholetone">whole tone</option>
-        </optgroup>
-        <optgroup label="— modes">
-          <option value="dorian">dorian</option>
-          <option value="phrygian">phrygian</option>
-          <option value="lydian">lydian</option>
-          <option value="mixolydian">mixolydian</option>
-          <option value="phrygianDom">phrygian dominant</option>
-          <option value="lydianDom">lydian dominant</option>
-          <option value="doubleHarmonic">double harmonic</option>
-          <option value="hungarianMinor">hungarian minor</option>
-          <option value="octatonic">octatonic</option>
-        </optgroup>
-        <optgroup label="— directional ↑↓">
-          <option value="melodicMinor">melodic minor ↑↓</option>
-          <option value="kafi">kafi ↑↓</option>
-          <option value="todi">todi ↑↓</option>
-          <option value="marwa">marwa ↑↓</option>
-          <option value="bhimpalasi">bhimpalasi ↑↓</option>
-          <option value="yaman">yaman</option>
-          <option value="bhairavi">bhairavi</option>
-        </optgroup>
-        <optgroup label="— japanese">
-          <option value="hirajoshi">hirajoshi</option>
-          <option value="insen">insen</option>
-        </optgroup>
-      </select>
+      <div style="display:flex;gap:4px;align-items:center">
+        <select id="scale">
+          <optgroup label="— western">
+            <option value="major">major (just intonation)</option>
+            <option value="minor">minor (just intonation)</option>
+            <option value="pentatonic">pentatonic</option>
+            <option value="pythagorean">pythagorean</option>
+            <option value="chromatic">chromatic (just)</option>
+            <option value="wholetone">whole tone</option>
+          </optgroup>
+          <optgroup label="— modes">
+            <option value="dorian">dorian</option>
+            <option value="phrygian">phrygian</option>
+            <option value="lydian">lydian</option>
+            <option value="mixolydian">mixolydian</option>
+            <option value="phrygianDom">phrygian dominant</option>
+            <option value="lydianDom">lydian dominant</option>
+            <option value="doubleHarmonic">double harmonic</option>
+            <option value="hungarianMinor">hungarian minor</option>
+            <option value="octatonic">octatonic</option>
+          </optgroup>
+          <optgroup label="— directional ↑↓">
+            <option value="melodicMinor">melodic minor ↑↓</option>
+            <option value="kafi">kafi ↑↓</option>
+            <option value="todi">todi ↑↓</option>
+            <option value="marwa">marwa ↑↓</option>
+            <option value="bhimpalasi">bhimpalasi ↑↓</option>
+            <option value="yaman">yaman</option>
+            <option value="bhairavi">bhairavi</option>
+          </optgroup>
+          <optgroup label="— japanese">
+            <option value="hirajoshi">hirajoshi</option>
+            <option value="insen">insen</option>
+          </optgroup>
+        </select>
+        <button class="scale-lock-btn" title="Lock scale to all voices">🔓</button>
+      </div>
     </div>
     <div class="row">
       <div class="lbl"><span>tonic</span></div>
-      <select id="tonic">
-        <option>C</option><option>C#</option><option>D</option><option>D#</option>
-        <option>E</option><option>F</option><option>F#</option><option>G</option>
-        <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
-      </select>
+      <div style="display:flex;gap:4px;align-items:center">
+        <select id="tonic">
+          <option>C</option><option>C#</option><option>D</option><option>D#</option>
+          <option>E</option><option>F</option><option>F#</option><option>G</option>
+          <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
+        </select>
+        <button class="scale-lock-btn tonic-lock-btn" title="Lock tonic to all voices">🔓</button>
+      </div>
     </div>
     <div class="row">
       <div class="lbl"><span>octave</span><span id="ov">3</span></div>
@@ -462,7 +468,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
             <option value="insen">insen</option>
           </optgroup>
         </select>
-        <button class="scale-lock-btn" data-vlock="0" title="Lock scale to PRIMARY VOICE">🔓</button>
+        <button class="scale-lock-btn" data-vlock="0" title="Lock scale to all voices">🔓</button>
       </div>
     </div>
     <div class="row">
@@ -473,7 +479,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
           <option>E</option><option>F</option><option>F#</option><option>G</option>
           <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
         </select>
-        <button class="scale-lock-btn tonic-lock-btn" data-vlock="0" title="Lock tonic to PRIMARY VOICE">🔓</button>
+        <button class="scale-lock-btn tonic-lock-btn" data-vlock="0" title="Lock tonic to all voices">🔓</button>
       </div>
     </div>
     <div class="row">
@@ -577,7 +583,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
             <option value="insen">insen</option>
           </optgroup>
         </select>
-        <button class="scale-lock-btn" data-vlock="1" title="Lock scale to PRIMARY VOICE">🔓</button>
+        <button class="scale-lock-btn" data-vlock="1" title="Lock scale to all voices">🔓</button>
       </div>
     </div>
     <div class="row">
@@ -588,7 +594,7 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
           <option>E</option><option>F</option><option>F#</option><option>G</option>
           <option>G#</option><option selected>A</option><option>A#</option><option>B</option>
         </select>
-        <button class="scale-lock-btn tonic-lock-btn" data-vlock="1" title="Lock tonic to PRIMARY VOICE">🔓</button>
+        <button class="scale-lock-btn tonic-lock-btn" data-vlock="1" title="Lock tonic to all voices">🔓</button>
       </div>
     </div>
     <div class="row">
@@ -1308,7 +1314,7 @@ function rebuildVoiceState(ve) {
 // ── PRESETS ──────────────────────────────────────────────
 let presets = [];
 let activeIdx = -1;
-let scaleLock = [false, false]; // [v2locked, v3locked]
+let scaleLock = false; // global — all voices lock together
 let morphBIdx = -1;
 let morphTween = null;
 let morphPos = 0;
@@ -2298,17 +2304,19 @@ document.querySelectorAll('.vtab').forEach(btn => {
 
 document.querySelectorAll('.scale-lock-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    const i = parseInt(btn.dataset.vlock);
-    scaleLock[i] = !scaleLock[i];
-    document.querySelectorAll(`.scale-lock-btn[data-vlock="${i}"]`).forEach(b => {
-      b.classList.toggle('locked', scaleLock[i]);
-      b.textContent = scaleLock[i] ? '🔒' : '🔓';
+    scaleLock = !scaleLock;
+    document.querySelectorAll('.scale-lock-btn').forEach(b => {
+      b.classList.toggle('locked', scaleLock);
+      b.textContent = scaleLock ? '🔒' : '🔓';
     });
-    if (scaleLock[i]) {
-      voiceExts[i].params.scale = P.scale;
-      voiceExts[i].params.tonic = P.tonic;
+    if (scaleLock) {
+      voiceExts.forEach(ve => {
+        ve.params.scale = P.scale;
+        ve.params.tonic = P.tonic;
+      });
       syncVoiceUI();
-      rebuildVoiceState(voiceExts[i]);
+      rebuildVoiceState(voiceExts[0]);
+      rebuildVoiceState(voiceExts[1]);
     }
   });
 });
@@ -2360,15 +2368,21 @@ document.getElementById('bpm').addEventListener('input', e => {
 });
 document.getElementById('scale').addEventListener('change', e => {
   P.scale = e.target.value; rebuildState();
-  [0,1].forEach(i => {
-    if (scaleLock[i]) { voiceExts[i].params.scale = P.scale; rebuildVoiceState(voiceExts[i]); syncVoiceUI(); }
-  });
+  if (scaleLock) {
+    voiceExts.forEach(ve => { ve.params.scale = P.scale; });
+    syncVoiceUI();
+    rebuildVoiceState(voiceExts[0]);
+    rebuildVoiceState(voiceExts[1]);
+  }
 });
 document.getElementById('tonic').addEventListener('change', e => {
   P.tonic = e.target.value; rebuildState();
-  [0,1].forEach(i => {
-    if (scaleLock[i]) { voiceExts[i].params.tonic = P.tonic; rebuildVoiceState(voiceExts[i]); syncVoiceUI(); }
-  });
+  if (scaleLock) {
+    voiceExts.forEach(ve => { ve.params.tonic = P.tonic; });
+    syncVoiceUI();
+    rebuildVoiceState(voiceExts[0]);
+    rebuildVoiceState(voiceExts[1]);
+  }
 });
 document.getElementById('octave').addEventListener('input', e => {
   P.octave = +e.target.value;
@@ -2564,9 +2578,19 @@ document.getElementById('phrase-loop-ind')?.addEventListener('click', () => {
   });
   document.getElementById(pfx+'-scale').addEventListener('change', e => {
     ve.params.scale = e.target.value; rebuildVoiceState(ve);
+    if (scaleLock) {
+      P.scale = ve.params.scale;
+      voiceExts.forEach(ov => { if (ov !== ve) { ov.params.scale = ve.params.scale; rebuildVoiceState(ov); } });
+      syncUI(); syncVoiceUI(); rebuildState();
+    }
   });
   document.getElementById(pfx+'-tonic').addEventListener('change', e => {
     ve.params.tonic = e.target.value; rebuildVoiceState(ve);
+    if (scaleLock) {
+      P.tonic = ve.params.tonic;
+      voiceExts.forEach(ov => { if (ov !== ve) { ov.params.tonic = ve.params.tonic; rebuildVoiceState(ov); } });
+      syncUI(); syncVoiceUI(); rebuildState();
+    }
   });
   document.getElementById(pfx+'-octave').addEventListener('input', e => {
     ve.params.octave = +e.target.value;
@@ -2760,7 +2784,7 @@ function saveSession() {
     v3: Object.assign({}, voiceExts[1].params),
     presets: presets.map(p => Object.assign({}, p)),
     score: scoreData,
-    scaleLock: scaleLock.slice()
+    scaleLock: scaleLock
   };
   const blob = new Blob([JSON.stringify(session, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
@@ -2801,12 +2825,10 @@ function loadSession(file) {
         if (el) el.value = val;
       });
     }
-    scaleLock = data.scaleLock ?? [false, false];
-    [0,1].forEach(i => {
-      document.querySelectorAll(`.scale-lock-btn[data-vlock="${i}"]`).forEach(b => {
-        b.classList.toggle('locked', scaleLock[i]);
-        b.textContent = scaleLock[i] ? '🔒' : '🔓';
-      });
+    scaleLock = data.scaleLock ?? false;
+    document.querySelectorAll('.scale-lock-btn').forEach(b => {
+      b.classList.toggle('locked', scaleLock);
+      b.textContent = scaleLock ? '🔒' : '🔓';
     });
     syncUI(); syncVoiceUI(); rebuildState();
     rebuildVoiceState(voiceExts[0]);
