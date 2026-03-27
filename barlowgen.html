@@ -1101,6 +1101,53 @@ function playNote(freq, dur, amp, t, wave, bass, chan, nr, dest) {
   }
 }
 
+function playKarplus(freq, velocity, duration, startTime, voiceGainNode) {
+  const sampleRate = AC.sampleRate;
+  const delayTime = 1 / freq;
+
+  // noise burst length: 2 full cycles of the pitch
+  const burstLen = Math.max(256, Math.ceil(sampleRate * delayTime * 2));
+
+  // white noise buffer
+  const buf = AC.createBuffer(1, burstLen, sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < burstLen; i++) data[i] = Math.random() * 2 - 1;
+
+  const noise = AC.createBufferSource();
+  noise.buffer = buf;
+
+  const delay = AC.createDelay(1.0);
+  delay.delayTime.value = delayTime;
+
+  const lp = AC.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = freq * 0.5;
+  lp.Q.value = 0.5;
+
+  const fb = AC.createGain();
+  fb.gain.value = 0.98;
+
+  const velGain = AC.createGain();
+  velGain.gain.value = (velocity / 127) * 0.7;
+
+  // signal flow: noise → delay → lp → fb → delay (loop)
+  //                              lp → velGain → voiceGainNode
+  noise.connect(delay);
+  delay.connect(lp);
+  lp.connect(fb);
+  fb.connect(delay);
+  lp.connect(velGain);
+  velGain.connect(voiceGainNode);
+
+  noise.start(startTime);
+  noise.stop(startTime + (burstLen / sampleRate));
+
+  // fade out feedback at end of duration
+  const fadeStart = startTime + duration * 0.85;
+  fb.gain.setTargetAtTime(0, fadeStart, 0.05);
+  velGain.gain.setTargetAtTime(0, fadeStart, 0.05);
+}
+
 // ═══════════════════════════════════════════════════════════
 // SCHEDULER
 // ═══════════════════════════════════════════════════════════
