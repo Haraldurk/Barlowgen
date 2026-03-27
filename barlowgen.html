@@ -1500,6 +1500,8 @@ function syncUI() {
   document.getElementById('tonality').value = P.tonality;
   document.getElementById('tv').textContent = P.tonality.toFixed(2);
   document.getElementById('wave').value = P.wave;
+  const kcPrim = document.getElementById('kc-primary');
+  if (kcPrim) kcPrim.style.display = P.wave === 'karplus' ? 'block' : 'none';
   document.getElementById('volume').value = P.volume;
   document.getElementById('vv').textContent = P.volume.toFixed(2);
   document.getElementById('gate').value = P.gate;
@@ -1545,6 +1547,8 @@ function syncVoiceUI() {
     g(pfx+'-ambitus', vp.ambitus);     s(pfx+'-ambitus-v', vp.ambitus + ' oct');
     g(pfx+'-density', vp.density);     s(pfx+'-density-v', vp.density.toFixed(2));
     g(pfx+'-wave', vp.wave);
+    const kcEl = document.getElementById(pfx === 'v2' ? 'kc-v2' : 'kc-v3');
+    if (kcEl) kcEl.style.display = vp.wave === 'karplus' ? 'block' : 'none';
     g(pfx+'-chan', vp.midiChan);
     const enCb = document.getElementById(pfx+'-en');
     if (enCb) enCb.checked = vp.enabled;
@@ -2555,6 +2559,7 @@ document.getElementById('ambitus').addEventListener('input', e => {
 });
 document.getElementById('wave').addEventListener('change', e => {
   P.wave = e.target.value; state.wave = P.wave;
+  document.getElementById('kc-primary').style.display = P.wave === 'karplus' ? 'block' : 'none';
 });
 document.getElementById('volume').addEventListener('input', e => {
   P.volume = +e.target.value;
@@ -2770,6 +2775,8 @@ document.getElementById('phrase-loop-ind')?.addEventListener('click', () => {
   });
   document.getElementById(pfx+'-wave').addEventListener('change', e => {
     ve.params.wave = e.target.value; ve.state.wave = e.target.value;
+    const kcId = vi === 0 ? 'kc-v2' : 'kc-v3';
+    document.getElementById(kcId).style.display = ve.params.wave === 'karplus' ? 'block' : 'none';
   });
   document.getElementById(pfx+'-chan').addEventListener('change', e => {
     ve.params.midiChan = +e.target.value;
