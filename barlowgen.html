@@ -1346,7 +1346,8 @@ const P = {
   swing: 0, restCluster: 0,
   echoProbability: 0, complexity: 1.0,
   driftRate: 0, driftDepth: 0.5,
-  bpm: 72, scale: 'major', wave: 'triangle', volume: 0.5
+  bpm: 72, scale: 'major', wave: 'triangle', volume: 0.5,
+  karplusDecay: 0.98, karplusBrightness: 0.5, karplusPluck: 0.5
   };
   const state = {
   indis: [], notes: [], pulseDur: 0.4,
@@ -1365,7 +1366,8 @@ function makeVoiceParams(strat, chan) {
     enabled: false, strat: strat, metricity: 0.5, tonality: 0.65,
     density: 1.0, scale: 'major', tonic: 'A', octave: 3, ambitus: 2,
     wave: 'triangle', gate: 0.8, midiChan: chan,
-    gateMin: 0.12, gateMax: 0.92, velocityMin: 40, velocityMax: 127
+    gateMin: 0.12, gateMax: 0.92, velocityMin: 40, velocityMax: 127,
+    karplusDecay: 0.98, karplusBrightness: 0.5, karplusPluck: 0.5
   };
 }
 function makeVoiceState() {
