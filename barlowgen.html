@@ -804,6 +804,11 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
       <button id="sc-stop" style="flex:0.4;padding:6px;background:rgba(200,50,50,0.1);border:0.5px solid rgba(200,50,50,0.3);border-radius:5px;color:#c06060;font-family:var(--mono);font-size:10px;cursor:pointer">■</button>
     </div>
     <div id="sc-time" style="font-size:9px;color:#303060;margin-top:8px;text-align:center">t = 0.0s</div>
+    <div style="margin-top:12px">
+      <div style="font-size:9px;color:#404060;margin-bottom:4px;letter-spacing:0.04em">tonality envelope  <span style="color:#303050">(loop · drag · right-click removes)</span></div>
+      <canvas id="tone-env-cv" width="240" height="72"
+        style="width:100%;height:72px;display:block;cursor:crosshair;border-radius:3px;border:0.5px solid #181828"></canvas>
+    </div>
   </div>
 </div>
 
@@ -1245,6 +1250,12 @@ function firePulse(idx, t, S, voiceIdx) {
   const Q = S.indis.length; if (!Q) return;
   const rank = S.indis[idx];
   const nr = Q > 1 ? rank / (Q - 1) : 1;
+
+  // Tonality envelope — override voice-1 tonality each pulse from loop position
+  if (voiceIdx === 0) {
+    const loopPos = (idx % Q) / Q;
+    S.tonality = scoreInterp(toneEnv.bps, loopPos);
+  }
 
   // Metricity gates probability — power curve for more natural hierarchy
   const rc = S.restCluster !== undefined ? S.restCluster : (P.restCluster || 0);
@@ -1930,6 +1941,12 @@ const scoreAuto = {
   }
 };
 
+// Tonality envelope — draggable breakpoints over one loop cycle (pos 0–1)
+const toneEnv = {
+  bps: [[0, 0.7], [1, 0.7]],  // [loopPos, tonality] pairs, always sorted by pos
+  _drag: null                  // index of bp being dragged
+};
+
 function parseBreakpoints(str) {
   if (!str || !str.trim()) return [];
   return str.trim().split(/[\s,]+/)
@@ -2223,6 +2240,7 @@ function frame(ts) {
   if (probVizOn) drawProbViz();
   if (randomBurst > 0) { drawRandomBurst(); randomBurst = Math.max(0, randomBurst - dt * 2.5); }
   drawScoreTimeline();
+  drawToneEnv();
 }
 
 // Subtle harmonic web between young particles
@@ -3004,6 +3022,68 @@ function drawScoreTimeline() {
   }
 }
 
+function drawToneEnv() {
+  const cv = document.getElementById('tone-env-cv');
+  if (!cv) return;
+  const cc = cv.getContext('2d');
+  const cW = cv.width, cH = cv.height;
+
+  // Sync canvas pixel size to display size (avoid blur)
+  const dispW = cv.clientWidth, dispH = cv.clientHeight;
+  if (dispW > 0 && (cv.width !== dispW || cv.height !== dispH)) {
+    cv.width = dispW; cv.height = dispH;
+  }
+
+  // Background + subtle grid
+  cc.fillStyle = '#04040c';
+  cc.fillRect(0, 0, cW, cH);
+  cc.strokeStyle = '#12121e';
+  cc.lineWidth = 0.5;
+  for (let i = 1; i < 4; i++) {
+    const gx = cW * i / 4;
+    cc.beginPath(); cc.moveTo(gx, 0); cc.lineTo(gx, cH); cc.stroke();
+  }
+  for (let i = 1; i < 4; i++) {
+    const gy = cH * i / 4;
+    cc.beginPath(); cc.moveTo(0, gy); cc.lineTo(cW, gy); cc.stroke();
+  }
+
+  // Envelope line
+  const bps = toneEnv.bps;
+  if (bps.length > 1) {
+    cc.beginPath();
+    bps.forEach((bp, i) => {
+      const ex = bp[0] * cW;
+      const ey = (1 - bp[1]) * cH;
+      if (i === 0) cc.moveTo(ex, ey); else cc.lineTo(ex, ey);
+    });
+    cc.strokeStyle = '#e8c840';
+    cc.lineWidth = 1.5;
+    cc.stroke();
+  }
+
+  // Breakpoint circles
+  bps.forEach(bp => {
+    const ex = bp[0] * cW;
+    const ey = (1 - bp[1]) * cH;
+    cc.beginPath();
+    cc.arc(ex, ey, 4.5, 0, Math.PI * 2);
+    cc.fillStyle = '#e8c840';
+    cc.fill();
+  });
+
+  // Loop playhead
+  if (playing && state.indis.length > 0) {
+    const loopPos = (pIdx % state.indis.length) / state.indis.length;
+    const phx = loopPos * cW;
+    cc.beginPath();
+    cc.moveTo(phx, 0); cc.lineTo(phx, cH);
+    cc.strokeStyle = 'rgba(255,255,255,0.45)';
+    cc.lineWidth = 1;
+    cc.stroke();
+  }
+}
+
 renderPresets();
 // Request MIDI access on page load so device list is populated before play
 if (navigator.requestMIDIAccess) {
@@ -3266,6 +3346,72 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ctxParam) delete lfoSlots[ctxParam];
     hideCtxMenu();
   });
+
+  // Tone envelope canvas
+  const teCv = document.getElementById('tone-env-cv');
+  if (teCv) {
+    const toNorm = (e) => {
+      const r = teCv.getBoundingClientRect();
+      return {
+        x: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)),
+        y: Math.max(0, Math.min(1, 1 - (e.clientY - r.top) / r.height))
+      };
+    };
+    const nearBpIdx = (nx) => {
+      const r = teCv.getBoundingClientRect();
+      const thresh = 10 / r.width;
+      let idx = -1, best = Infinity;
+      toneEnv.bps.forEach((bp, i) => {
+        const d = Math.abs(bp[0] - nx);
+        if (d < thresh && d < best) { best = d; idx = i; }
+      });
+      return idx;
+    };
+
+    teCv.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      const n = toNorm(e);
+      const i = nearBpIdx(n.x);
+      if (i >= 0) {
+        toneEnv._drag = i;
+      } else {
+        // Insert new bp sorted by position
+        toneEnv.bps.push([n.x, n.y]);
+        toneEnv.bps.sort((a, b) => a[0] - b[0]);
+        toneEnv._drag = toneEnv.bps.findIndex(bp => bp[0] === n.x);
+      }
+      e.preventDefault();
+    });
+
+    teCv.addEventListener('mousemove', e => {
+      if (toneEnv._drag === null) return;
+      const n = toNorm(e);
+      const i = toneEnv._drag;
+      // First and last bps are pinned at x=0 and x=1
+      if (i === 0) {
+        toneEnv.bps[0][1] = n.y;
+      } else if (i === toneEnv.bps.length - 1) {
+        toneEnv.bps[i][1] = n.y;
+      } else {
+        const minX = toneEnv.bps[i-1][0] + 0.01;
+        const maxX = toneEnv.bps[i+1][0] - 0.01;
+        toneEnv.bps[i][0] = Math.max(minX, Math.min(maxX, n.x));
+        toneEnv.bps[i][1] = n.y;
+      }
+    });
+
+    const stopDrag = () => { toneEnv._drag = null; };
+    teCv.addEventListener('mouseup', stopDrag);
+    teCv.addEventListener('mouseleave', stopDrag);
+
+    teCv.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if (toneEnv.bps.length <= 2) return;
+      const n = toNorm(e);
+      const i = nearBpIdx(n.x);
+      if (i > 0 && i < toneEnv.bps.length - 1) toneEnv.bps.splice(i, 1);
+    });
+  }
 });
 
 // Hover tooltips
