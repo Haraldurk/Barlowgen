@@ -1381,30 +1381,38 @@ function logVoiceSummary() {
   const midiOf  = f  => Math.round(69 + 12 * Math.log2(f / 440));
   const noteName = m => NM[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
 
-  // Build descriptor for each active voice
+  // Build descriptor for each active voice — use direct state references
   const voices = [
     { label: 'voice 1', ch: state.midiChan,
       scale: P.scale, tonic: P.tonic, tonicShift: P.tonicShift || 0,
-      tonality: state.tonality, notes: state.notes }
+      tonality: state.tonality,
+      pool: state.notes.aroha || state.notes }
   ];
   voiceExts.forEach((ve, i) => {
     if (!ve.params.enabled) return;
     voices.push({
       label: 'voice ' + (i + 2), ch: ve.state.midiChan,
       scale: ve.params.scale, tonic: ve.params.tonic, tonicShift: 0,
-      tonality: ve.state.tonality, notes: ve.state.notes
+      tonality: ve.state.tonality,
+      pool: ve.state.notes.aroha || ve.state.notes
     });
   });
 
   for (const v of voices) {
-    const pool = v.notes.aroha || v.notes;
+    const pool = v.pool;
     const k    = v.tonality * 3.0;
 
-    // Debug: show actual note object shape (remove once property confirmed)
+    // Debug: show actual note object shape
     if (pool.length > 0) console.log('  [note0 obj]:', JSON.stringify(pool[0]));
 
     // Compute weighted selection probability — formula identical to weightedPick
     const weights = pool.map(note => Math.pow(Math.max(0, note.nh), k) + 0.05);
+
+    // Diagnostic: show first 5 individual weights
+    for (let i = 0; i < Math.min(5, pool.length); i++) {
+      console.log(`  [w${i}] nh=${pool[i].nh.toFixed(3)} k=${k.toFixed(2)} pow=${Math.pow(pool[i].nh, k).toFixed(4)} w=${weights[i].toFixed(4)}`);
+    }
+
     const total = weights.reduce((s, w) => s + w, 0);
     const items = pool.map((n, i) => {
       const m = midiOf(n.freq);
