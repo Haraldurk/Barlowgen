@@ -3110,7 +3110,7 @@ function drawToneEnv() {
 }
 
 function initKeyboard() {
-  const KB_LO = 21, KB_HI = 84;
+  const KB_LO = 12, KB_HI = 120;
   const WHITE_PC = new Set([0, 2, 4, 5, 7, 9, 11]);
   const WH = 36, BH = 22; // white / black key heights px
 
@@ -3128,7 +3128,7 @@ function initKeyboard() {
   cv.id = 'kb-cv';
   cv.height = WH;
   Object.assign(cv.style, {
-    position: 'fixed', bottom: '30px', left: '0',
+    position: 'fixed', bottom: '0', left: '0',
     width: '100%', height: WH + 'px',
     zIndex: '15', pointerEvents: 'none',
     display: kbVisible ? 'block' : 'none'
