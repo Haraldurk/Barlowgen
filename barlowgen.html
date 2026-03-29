@@ -1365,11 +1365,64 @@ function scheduler() {
   tickScore();
 }
 
+function logVoiceSummary() {
+  const NM = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const midiOf  = f  => Math.round(69 + 12 * Math.log2(f / 440));
+  const noteName = m => NM[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+
+  // Build descriptor for each active voice
+  const voices = [
+    { label: 'voice 1', ch: state.midiChan,
+      scale: P.scale, tonic: P.tonic, tonicShift: P.tonicShift || 0,
+      tonality: state.tonality, notes: state.notes }
+  ];
+  voiceExts.forEach((ve, i) => {
+    if (!ve.params.enabled) return;
+    voices.push({
+      label: 'voice ' + (i + 2), ch: ve.state.midiChan,
+      scale: ve.params.scale, tonic: ve.params.tonic, tonicShift: 0,
+      tonality: ve.state.tonality, notes: ve.state.notes
+    });
+  });
+
+  for (const v of voices) {
+    const pool = v.notes.aroha || v.notes;
+    const k    = v.tonality * 3.0;
+
+    // Compute weighted selection probability per note
+    const total = pool.reduce((s, n) => s + Math.pow(n.nh, k) + 0.05, 0);
+    const items = pool.map(n => {
+      const m = midiOf(n.freq);
+      return { name: noteName(m), midi: m, freq: n.freq,
+               pct: (Math.pow(n.nh, k) + 0.05) / total * 100 };
+    });
+
+    // Effective key: shift semitones applied to tonic's pitch class
+    const tonicMidi  = midiOf(TONICMAP[v.tonic] || 440);
+    const keyName    = NM[((tonicMidi + Math.round(v.tonicShift)) % 12 + 12) % 12];
+
+    const byFreq = items.slice().sort((a, b) => a.freq - b.freq);
+    const top5   = items.slice().sort((a, b) => b.pct - a.pct).slice(0, 5);
+    const lo = byFreq[0], hi = byFreq[byFreq.length - 1];
+
+    console.group('▶ BARLOWGEN startup — ' + v.label + ' (ch' + v.ch + ')');
+    console.log('  key:      ' + keyName + '  (tonic shift: ' + v.tonicShift.toFixed(1) + ' st)');
+    console.log('  scale:    ' + v.scale);
+    console.log('  tonality: ' + v.tonality.toFixed(2) + '  →  k = ' + k.toFixed(2));
+    console.log('  pool:     ' + pool.length + ' notes  ·  ' + lo.name + '–' + hi.name);
+    console.log('  top 5:    ' + top5.map(n => n.name + ' ' + n.pct.toFixed(1) + '%').join('  ·  '));
+    console.log('  lowest:   ' + lo.name + '  MIDI ' + lo.midi + '  ' + lo.freq.toFixed(1) + ' Hz');
+    console.log('  highest:  ' + hi.name + '  MIDI ' + hi.midi + '  ' + hi.freq.toFixed(1) + ' Hz');
+    console.groupEnd();
+  }
+}
+
 function startEngine() {
   if (!AC) initAudio();
   if (AC.state === 'suspended') AC.resume();
   rebuildState();
   for (const ve of voiceExts) { if (ve.params.enabled) rebuildVoiceState(ve); }
+  logVoiceSummary();
   pTime = AC.currentTime + 0.06; pIdx = 0;
   for (const ve of voiceExts) { ve.pTime = AC.currentTime + 0.06; ve.pIdx = 0; }
   scheduler();
@@ -1960,21 +2013,6 @@ function rebuildState() {
 }
 rebuildState();
 
-// Log note pool weights at startup for verification
-(function logNoteWeights() {
-  const NM = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-  const midiName = m => NM[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
-  const notes = state.notes.aroha || state.notes;
-  const k = state.tonality * 3.0;
-  const ws = notes.map(n => {
-    const m = Math.round(69 + 12 * Math.log2(n.freq / 440));
-    return { midi: m, name: midiName(m), freq: Math.round(n.freq), nh: +n.nh.toFixed(3), w: +(Math.pow(n.nh, k) + 0.05).toFixed(4) };
-  });
-  const total = ws.reduce((s, w) => s + w.w, 0);
-  const key = P.tonic + (P.tonicShift ? ' +' + P.tonicShift.toFixed(1) + 'st' : '');
-  console.log('[barlowgen] note pool  key=' + key + '  scale=' + P.scale + '  tonality=' + state.tonality.toFixed(2) + '  k=' + k.toFixed(2));
-  ws.forEach(w => console.log('  ' + w.name.padEnd(4) + ' MIDI ' + String(w.midi).padStart(3) + '  ' + String(w.freq).padStart(4) + 'Hz  nh=' + w.nh.toFixed(3) + '  p=' + (w.w / total * 100).toFixed(1) + '%'));
-})();
 
 // ═══════════════════════════════════════════════════════════
 // VISUAL ENGINE
