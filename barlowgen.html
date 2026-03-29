@@ -1405,10 +1405,12 @@ function logVoiceSummary() {
     const top5   = items.slice().sort((a, b) => b.pct - a.pct).slice(0, 5);
     const lo = byFreq[0], hi = byFreq[byFreq.length - 1];
 
+    const nhSample = pool.slice(0, 8).map(n => n.nh.toFixed(3)).join(', ');
     console.group('▶ BARLOWGEN startup — ' + v.label + ' (ch' + v.ch + ')');
     console.log('  key:      ' + keyName + '  (tonic shift: ' + v.tonicShift.toFixed(1) + ' st)');
     console.log('  scale:    ' + v.scale);
     console.log('  tonality: ' + v.tonality.toFixed(2) + '  →  k = ' + k.toFixed(2));
+    console.log('  nh[0..7]: ' + nhSample);
     console.log('  pool:     ' + pool.length + ' notes  ·  ' + lo.name + '–' + hi.name);
     console.log('  top 5:    ' + top5.map(n => n.name + ' ' + n.pct.toFixed(1) + '%').join('  ·  '));
     console.log('  lowest:   ' + lo.name + '  MIDI ' + lo.midi + '  ' + lo.freq.toFixed(1) + ' Hz');
@@ -3224,40 +3226,46 @@ document.addEventListener('keydown', e => {
 }, true);
 
 // MIDI Learn button
-document.getElementById('ctx-midi-learn').addEventListener('click', () => {
-  if (!ctxParam) return;
-  const existing = Object.entries(ccMap).find(([,v]) => v === ctxParam);
-  if (existing) {
-    delete ccMap[existing[0]];
-    document.getElementById('ctx-midi-learn').textContent = '🎹 MIDI Learn';
+document.addEventListener('DOMContentLoaded', () => {
+  const mlEl = document.getElementById('ctx-midi-learn');
+  if (mlEl) mlEl.addEventListener('click', () => {
+    if (!ctxParam) return;
+    const existing = Object.entries(ccMap).find(([,v]) => v === ctxParam);
+    if (existing) {
+      delete ccMap[existing[0]];
+      document.getElementById('ctx-midi-learn').textContent = '🎹 MIDI Learn';
+      hideCtxMenu();
+      return;
+    }
+    midiLearnArmed = true;
+    document.getElementById('ctx-midi-learn').textContent = '🎹 Move a CC knob\u2026';
+  });
+
+  // LFO assign — toggle panel
+  const laEl = document.getElementById('ctx-lfo-assign');
+  if (laEl) laEl.addEventListener('click', () => {
+    const p = document.getElementById('ctx-lfo-panel');
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // LFO apply
+  const loEl = document.getElementById('ctx-lfo-ok');
+  if (loEl) loEl.addEventListener('click', () => {
+    if (!ctxParam) return;
+    lfoSlots[ctxParam] = {
+      rate:  parseFloat(document.getElementById('ctx-lfo-rate').value),
+      depth: parseFloat(document.getElementById('ctx-lfo-depth').value),
+      phase: lfoSlots[ctxParam] ? lfoSlots[ctxParam].phase : 0
+    };
     hideCtxMenu();
-    return;
-  }
-  midiLearnArmed = true;
-  document.getElementById('ctx-midi-learn').textContent = '🎹 Move a CC knob\u2026';
-});
+  });
 
-// LFO assign — toggle panel
-document.getElementById('ctx-lfo-assign').addEventListener('click', () => {
-  const p = document.getElementById('ctx-lfo-panel');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
-});
-
-// LFO apply
-document.getElementById('ctx-lfo-ok').addEventListener('click', () => {
-  if (!ctxParam) return;
-  lfoSlots[ctxParam] = {
-    rate:  parseFloat(document.getElementById('ctx-lfo-rate').value),
-    depth: parseFloat(document.getElementById('ctx-lfo-depth').value),
-    phase: lfoSlots[ctxParam] ? lfoSlots[ctxParam].phase : 0
-  };
-  hideCtxMenu();
-});
-
-// LFO clear
-document.getElementById('ctx-lfo-clear').addEventListener('click', () => {
-  if (ctxParam) delete lfoSlots[ctxParam];
-  hideCtxMenu();
+  // LFO clear
+  const lcEl = document.getElementById('ctx-lfo-clear');
+  if (lcEl) lcEl.addEventListener('click', () => {
+    if (ctxParam) delete lfoSlots[ctxParam];
+    hideCtxMenu();
+  });
 });
 
 // Hover tooltips
