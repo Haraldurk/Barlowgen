@@ -235,6 +235,10 @@ select optgroup { background: #0e0e1a; color: rgba(160,165,190,0.6);
   <button id="collapse-all" title="Collapse all sections"
     style="padding:3px 8px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:rgba(180,185,210,0.6);font-family:var(--mono);font-size:14px;cursor:pointer;margin-left:4px;transition:color 0.15s"
     onclick="toggleAllSections()">&#8863;</button>
+  <button id="kb-toggle" title="Toggle piano keyboard"
+    style="padding:3px 7px;background:rgba(40,40,80,0.5);border:0.5px solid rgba(60,60,100,0.4);border-radius:4px;color:rgba(180,185,210,0.6);font-family:var(--mono);cursor:pointer;margin-left:4px;transition:color 0.15s;line-height:1">
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x=".5" y=".5" width="4" height="11" rx=".5" stroke="currentColor" stroke-width=".8"/><rect x="5.5" y=".5" width="4" height="11" rx=".5" stroke="currentColor" stroke-width=".8"/><rect x="10.5" y=".5" width="5" height="11" rx=".5" stroke="currentColor" stroke-width=".8"/><rect x="3.5" y=".5" width="3.5" height="7" rx=".5" fill="currentColor"/><rect x="8.5" y=".5" width="3.5" height="7" rx=".5" fill="currentColor"/></svg>
+  </button>
   <span id="audio-mute-group">
     <button id="btn-aud" class="sb-mute-btn" title="Toggle internal audio">AUDIO</button>
     <span class="sb-mute-dot" data-vmute="0" title="Voice 1 audio">●</span>
@@ -1210,6 +1214,18 @@ function playKarplus(freq, velocity, duration, startTime, voiceGainNode,
 // ═══════════════════════════════════════════════════════════
 
 let pTime = 0, pIdx = 0, schedTick = null, playing = false;
+
+// Piano keyboard overlay
+const kbActive = []; // { midi, voice, startAC, endAC }
+let kbVisible = (() => {
+  try { return JSON.parse(localStorage.getItem('barlowgen_kb') || 'false'); } catch(e) { return false; }
+})();
+let drawKeyboard = () => {};
+function kbNoteOn(midi, voice, startAC, endAC) {
+  if (midi < 21 || midi > 84) return;
+  kbActive.push({ midi, voice, startAC, endAC });
+  if (kbActive.length > 240) kbActive.splice(0, kbActive.length - 240);
+}
 const vQueue = []; // visual events keyed to audio time
 
 // ── New feature state ────────────────────────────────────────
@@ -1325,6 +1341,7 @@ function firePulse(idx, t, S, voiceIdx) {
       } else {
         playNote(playFreq, dur, amp, tFire, S.wave, false, S.midiChan, nr, vDest);
       }
+      kbNoteOn(freqToMidi(playFreq), voiceIdx, tFire, tFire + dur);
       vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false, vi: voiceIdx });
       if (voiceIdx === 0) { lastFireTime = tFire; lastFireNH = note.nh || 0.5; }
     } else { S.lastWasRest = true; }
@@ -2248,6 +2265,7 @@ function frame(ts) {
   if (randomBurst > 0) { drawRandomBurst(); randomBurst = Math.max(0, randomBurst - dt * 2.5); }
   drawScoreTimeline();
   drawToneEnv();
+  drawKeyboard();
 }
 
 // Subtle harmonic web between young particles
@@ -3091,6 +3109,129 @@ function drawToneEnv() {
   }
 }
 
+function initKeyboard() {
+  const KB_LO = 21, KB_HI = 84;
+  const WHITE_PC = new Set([0, 2, 4, 5, 7, 9, 11]);
+  const WH = 36, BH = 22; // white / black key heights px
+
+  // Precompute how many white keys sit strictly before each MIDI note
+  const wkBefore = {};
+  let wc = 0;
+  for (let n = KB_LO; n <= KB_HI; n++) {
+    wkBefore[n] = wc;
+    if (WHITE_PC.has(n % 12)) wc++;
+  }
+  const TOTAL_WHITE = wc; // 38 (A0–C6)
+
+  // Create overlay canvas
+  const cv = document.createElement('canvas');
+  cv.id = 'kb-cv';
+  cv.height = WH;
+  Object.assign(cv.style, {
+    position: 'fixed', bottom: '30px', left: '0',
+    width: '100%', height: WH + 'px',
+    zIndex: '15', pointerEvents: 'none',
+    display: kbVisible ? 'block' : 'none'
+  });
+  document.body.appendChild(cv);
+
+  // Voice glow colors: V1 amber, V2 teal, V3 purple
+  const VCOL = [
+    [38,  85, 60],  // V1 — amber
+    [170, 75, 55],  // V2 — teal
+    [290, 75, 62]   // V3 — purple
+  ];
+
+  drawKeyboard = function() {
+    if (!kbVisible) return;
+    const cW = cv.clientWidth || window.innerWidth;
+    if (cv.width !== cW) cv.width = cW;
+    const cc = cv.getContext('2d');
+    const wkW = cW / TOTAL_WHITE;
+    const bkW = wkW * 0.62;
+
+    // Background
+    cc.fillStyle = '#07070c';
+    cc.fillRect(0, 0, cW, WH);
+
+    // Resolve active note map: midi → { voice, alpha }
+    const now = AC ? AC.currentTime : 0;
+    const act = {};
+    for (let i = kbActive.length - 1; i >= 0; i--) {
+      const e = kbActive[i];
+      if (now > e.endAC + 0.5) { kbActive.splice(i, 1); continue; }
+      if (act[e.midi] !== undefined) continue; // keep most-recent entry per key
+      const fadeIn  = now >= e.startAC ? 1 : 0;
+      const fadeOut = now <= e.endAC   ? 1 : Math.max(0, 1 - (now - e.endAC) / 0.35);
+      const alpha = fadeIn * fadeOut;
+      if (alpha > 0.01) act[e.midi] = { voice: e.voice, alpha };
+    }
+
+    // ── White keys ───────────────────────────────────────────
+    for (let n = KB_LO; n <= KB_HI; n++) {
+      if (!WHITE_PC.has(n % 12)) continue;
+      const x = wkBefore[n] * wkW;
+      const a = act[n];
+      if (a) {
+        const [h, s, l] = VCOL[a.voice];
+        cc.fillStyle = `hsl(${h},${s}%,${Math.min(92, l + 22)}%)`;
+        cc.fillRect(x + 0.5, 0, wkW - 1, WH);
+        const gr = cc.createRadialGradient(x + wkW / 2, WH, 2, x + wkW / 2, WH * 0.25, wkW * 1.8);
+        gr.addColorStop(0, `hsla(${h},${s}%,${l + 12}%,${(a.alpha * 0.7).toFixed(3)})`);
+        gr.addColorStop(1, `hsla(${h},${s}%,${l}%,0)`);
+        cc.fillStyle = gr;
+        cc.fillRect(x + 0.5, 0, wkW - 1, WH);
+        cc.strokeStyle = `hsla(${h},${s}%,${l + 10}%,${(a.alpha * 0.9).toFixed(3)})`;
+        cc.lineWidth = 1.5;
+        cc.strokeRect(x + 1, 0.5, wkW - 2, WH - 1);
+      } else {
+        cc.fillStyle = '#1a1a1f';
+        cc.fillRect(x + 0.5, 0, wkW - 1, WH);
+      }
+      // Key divider
+      cc.strokeStyle = '#07070c';
+      cc.lineWidth = 0.5;
+      cc.strokeRect(x + 0.5, 0.5, wkW - 1, WH - 1);
+    }
+
+    // ── Black keys (drawn over white) ────────────────────────
+    for (let n = KB_LO; n <= KB_HI; n++) {
+      if (WHITE_PC.has(n % 12)) continue;
+      // Center black key on the boundary between its two adjacent white keys
+      const x = wkBefore[n] * wkW - bkW * 0.5;
+      const a = act[n];
+      if (a) {
+        const [h, s, l] = VCOL[a.voice];
+        cc.fillStyle = `hsl(${h},${s}%,${l}%)`;
+        cc.fillRect(x, 0, bkW, BH);
+        const gr = cc.createRadialGradient(x + bkW / 2, BH, 1, x + bkW / 2, BH * 0.25, bkW * 2.2);
+        gr.addColorStop(0, `hsla(${h},${s}%,${l + 8}%,${(a.alpha * 0.8).toFixed(3)})`);
+        gr.addColorStop(1, `hsla(${h},${s}%,${l}%,0)`);
+        cc.fillStyle = gr;
+        cc.fillRect(x, 0, bkW, BH);
+        cc.strokeStyle = `hsla(${h},${s}%,${l + 10}%,${a.alpha.toFixed(3)})`;
+        cc.lineWidth = 1;
+        cc.strokeRect(x + 0.5, 0.5, bkW - 1, BH - 1);
+      } else {
+        cc.fillStyle = '#0a0a0e';
+        cc.fillRect(x, 0, bkW, BH);
+      }
+    }
+  };
+
+  // Wire the toggle button
+  const btn = document.getElementById('kb-toggle');
+  if (btn) {
+    btn.style.color = kbVisible ? 'var(--accent)' : 'rgba(180,185,210,0.6)';
+    btn.addEventListener('click', () => {
+      kbVisible = !kbVisible;
+      cv.style.display = kbVisible ? 'block' : 'none';
+      btn.style.color = kbVisible ? 'var(--accent)' : 'rgba(180,185,210,0.6)';
+      try { localStorage.setItem('barlowgen_kb', JSON.stringify(kbVisible)); } catch(e) {}
+    });
+  }
+}
+
 renderPresets();
 // Request MIDI access on page load so device list is populated before play
 if (navigator.requestMIDIAccess) {
@@ -3419,6 +3560,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (i > 0 && i < toneEnv.bps.length - 1) toneEnv.bps.splice(i, 1);
     });
   }
+
+  initKeyboard();
 });
 
 // Hover tooltips

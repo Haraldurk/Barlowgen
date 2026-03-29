@@ -15,7 +15,7 @@ IBM Plex Mono font. Dark aesthetic (#03030a background, #e8c840 gold).
 - barlowRandomStrat(): prime-weighted strat generator, P(p) ∝ 1/ξ(p)
 
 ## Architecture
-- Single file: barlowgen.html (~2200+ lines)
+- Single file: barlowgen.html (~3500+ lines)
 - P object: all V1 parameters
 - state object: derived from P via rebuildState()
 - voiceExts[0,1]: V2 and V3, each has params+state+pTime+pIdx
@@ -27,6 +27,11 @@ IBM Plex Mono font. Dark aesthetic (#03030a background, #e8c840 gold).
 - scoreAuto / tickScore(): breakpoint automation, 12 params + morph
 - morphTween / startTimedMorph(secs): timed A→B morph via setInterval
 - window.SCALES = SCALES: exposes scale dict to randomizers
+- Piano keyboard overlay: kbActive[] {midi,voice,startAC,endAC}, kbNoteOn() called
+  from firePulse, drawKeyboard() redraws each frame. initKeyboard() creates canvas
+  #kb-cv (fixed bottom:30px, height:36px, z-index:15), wires kb-toggle button.
+  VCOL = [amber(38), teal(170), purple(290)] per voice. MIDI 21–84 (A0–C6), 38
+  white keys. Black key x = wkBefore[n]*wkW − bkW*0.5. Visibility in localStorage.
 
 ## UI layout
 - Status bar top: play | ⚄ master rand | ⊟ collapse-all | BARLOWGEN | bpm | pulses
@@ -74,6 +79,7 @@ stays in panel with gold dot indicator. Click header to bring float to front.
 - ✓ Preset export/import: ⬇P/⬆P buttons in state bar. exportPreset() saves presets[activeIdx] as barlowgen-<name>.barlo. importPreset() reads .barlo/.json into activeIdx, calls savePresets() + loadPreset() + renderPresets().
 
 - ✓ Karplus-Strong synthesis: physical plucked string model per voice. playKarplus(freq, vel, dur, t, gain, kDecay, kBright, kPluck). Noise burst → delay loop → lowpass → feedback. Pitch set by delayTime = 1/freq (JI-exact). wave dropdown: sine | triangle | sawtooth | karplus. Three per-voice params in P/makeVoiceParams (karplusDecay 0.90–0.999, karplusBrightness 0.1–2.0, karplusPluck 0.0–1.0). Sliders hidden unless wave=karplus. Propagated through rebuildState/rebuildVoiceState/syncUI/syncVoiceUI.
+- ✓ Piano keyboard overlay: canvas #kb-cv fixed at canvas bottom (above state bar). MIDI 21–84 (A0–C6), 38 white keys, compact 36px height. V1=amber, V2=teal, V3=purple glow with radial gradient bloom. Snap-on at note startAC, 350ms fade-out. Toggle via keyboard SVG icon in status bar; state persists in localStorage key 'barlowgen_kb'.
 
 ## What still needs building
 - Rename preset slot inline (double-click to edit name on button)
