@@ -1033,16 +1033,19 @@ function buildNotes(scaleName, tonic, octave, ambitus) {
   const def = SCALES[scaleName] || SCALES.major;
 
   function makeArr(ratios) {
+    // ±ambitus octaves around root (center of register)
     const notes = [], top = root * Math.pow(2, ambitus) * 1.005;
-    for (let oct = 0; oct <= ambitus; oct++) {
+    for (let oct = -ambitus; oct <= ambitus; oct++) {
       for (const [p, q] of ratios) {
         const freq = root * Math.pow(2, oct) * p / q;
         if (freq <= top) notes.push({ freq, h: absHarm(p, q) });
       }
     }
     notes.sort((a, b) => a.freq - b.freq);
-    const maxH = Math.max(...notes.map(n => n.h), 0.001);
-    notes.forEach(n => n.nh = n.h / maxH);
+    // absHarm(1,1)=100 dwarfs all intervals; normalize against max non-unison H
+    // so non-tonic notes get meaningful nh values (0–0.9), tonic = 1.0
+    const maxNonUnison = Math.max(...notes.filter(n => n.h < 99).map(n => n.h), 0.001);
+    notes.forEach(n => { n.nh = n.h >= 99 ? 1.0 : Math.min(0.9, n.h / maxNonUnison); });
     return notes;
   }
 
@@ -1215,10 +1218,10 @@ const phraseLoop = { active: false, len: 8, buf: [], pos: 0 };
 function weightedPick(notes, normRank, tonality, synnefism, driftBias, driftDepth) {
   synnefism = synnefism || 0; driftBias = driftBias || 0; driftDepth = driftDepth || 0;
   if (!notes.length) return null;
-  const lt = tonality * (0.3 + 0.7 * normRank);
+  const k = tonality * 3.0;  // 0=flat/random → 3=strongly tonic-weighted
   const n = notes.length;
   const weights = notes.map((note, i) => {
-    const hw = lt < 0.001 ? 1 : Math.pow(Math.max(0.005, note.nh), 2.5 * lt);
+    const hw = Math.pow(Math.max(0, note.nh), k) + 0.05;  // floor prevents zero-weight
     const rw = 1 / n;
     const hw_syn = (1 - synnefism) * hw + synnefism * rw;
     const pos = n > 1 ? i / (n - 1) : 0.5;
@@ -1275,6 +1278,7 @@ function firePulse(idx, t, S, voiceIdx) {
           S.driftDepth !== undefined ? S.driftDepth : (P.driftDepth || 0));
       }
     }
+    const tonicMult = S.tonicMult || 1;
     if (note) {
       if (S.lastFreq) {
         if (note.freq > S.lastFreq) S.direction = 1;
@@ -1283,6 +1287,7 @@ function firePulse(idx, t, S, voiceIdx) {
       S.lastFreq = note.freq;
       S.lastWasRest = false; S.lastNote = note;
 
+      const playFreq = note.freq * tonicMult;
       const amp = 0.07 + 0.14 * nr;
       const gate = S.gate !== undefined ? S.gate : 0.8;
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
@@ -1296,16 +1301,16 @@ function firePulse(idx, t, S, voiceIdx) {
         const kVel = Math.max(1, Math.min(127,
           Math.round(64 + vd * (127 - 64) * Math.pow(nr, 0.5) - vd * 24 * (1 - nr))
         ));
-        playKarplus(note.freq, kVel, dur, tFire, vDest,
+        playKarplus(playFreq, kVel, dur, tFire, vDest,
           S.karplusDecay ?? 0.98,
           S.karplusBrightness ?? 0.5,
           S.karplusPluck ?? 0.5);
         if (P.midiChan) {
-          const mn = freqToMidi(note.freq);
+          const mn = freqToMidi(playFreq);
           if (mn >= 0 && mn <= 127) { midiNoteOn(mn, kVel, P.midiChan, tFire); midiNoteOff(mn, P.midiChan, tFire + dur); }
         }
       } else {
-        playNote(note.freq, dur, amp, tFire, S.wave, false, P.midiChan, nr, vDest);
+        playNote(playFreq, dur, amp, tFire, S.wave, false, P.midiChan, nr, vDest);
       }
       vQueue.push({ idx, t: tFire, nh: note.nh, nr, bass: false, vi: voiceIdx });
       if (voiceIdx === 0) { lastFireTime = tFire; lastFireNH = note.nh || 0.5; }
@@ -1314,6 +1319,7 @@ function firePulse(idx, t, S, voiceIdx) {
 
   // Bass on strong pulses (coupled to harmonic field)
   if (nr > 0.68 && P.bassVel > 0 && Math.random() < 0.78) {
+    const tonicMult = S.tonicMult || 1;
     const bn = weightedPick((S.notes.aroha || S.notes).slice(0, 6), nr, S.tonality,
       S.synnefism !== undefined ? S.synnefism : (P.synnefism || 0),
       S.driftBias || 0,
@@ -1321,11 +1327,12 @@ function firePulse(idx, t, S, voiceIdx) {
     if (bn) {
       const jOff = P.jitter > 0 ? (Math.random() - 0.5) * P.jitter * S.pulseDur * 0.5 : 0;
       const tFire = t + jOff;
+      const bassFreq = bn.freq * tonicMult / 2;
       // Bass also follows curved rank velocity
       const bassDur = S.pulseDur * 2.0;
-      playNote(bn.freq / 2, bassDur, P.bassVel * 0.12, tFire, 'sine', true, null, null, vDest);
+      playNote(bassFreq, bassDur, P.bassVel * 0.12, tFire, 'sine', true, null, null, vDest);
       if (voiceIdx === 0 && midiOut) {
-        const bmn = Math.max(0, Math.min(127, freqToMidi(bn.freq / 2)));
+        const bmn = Math.max(0, Math.min(127, freqToMidi(bassFreq)));
         const bvel = Math.max(1, Math.min(80, Math.round(P.bassVel * 64)));
         midiNoteOn(bmn, bvel, P.midiChan, tFire);
         midiNoteOff(bmn, P.midiChan, tFire + bassDur);
@@ -1945,6 +1952,16 @@ function rebuildState() {
   updateStatus();
 }
 rebuildState();
+
+// Log note pool weights at startup for verification
+(function logNoteWeights() {
+  const notes = state.notes.aroha || state.notes;
+  const k = state.tonality * 3.0;
+  const weights = notes.map(n => ({ midi: Math.round(69 + 12 * Math.log2(n.freq / 440)), freq: Math.round(n.freq), nh: +n.nh.toFixed(3), w: +(Math.pow(n.nh, k) + 0.05).toFixed(4) }));
+  const total = weights.reduce((s, w) => s + w.w, 0);
+  console.log('[barlowgen] note pool at startup (tonality=' + state.tonality.toFixed(2) + ', k=' + k.toFixed(2) + ')');
+  weights.forEach(w => console.log('  MIDI ' + w.midi + '  ' + w.freq + 'Hz  nh=' + w.nh + '  weight=' + w.w + '  p=' + (w.w / total * 100).toFixed(1) + '%'));
+})();
 
 // ═══════════════════════════════════════════════════════════
 // VISUAL ENGINE
