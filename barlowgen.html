@@ -1402,42 +1402,37 @@ function logVoiceSummary() {
     const pool = v.pool;
     const k    = v.tonality * 3.0;
 
-    // Debug: show actual note object shape
-    if (pool.length > 0) console.log('  [note0 obj]:', JSON.stringify(pool[0]));
-
     // Compute weighted selection probability — formula identical to weightedPick
     const weights = pool.map(note => Math.pow(Math.max(0, note.nh), k) + 0.05);
+    const total   = weights.reduce((s, w) => s + w, 0);
 
-    // Diagnostic: show first 5 individual weights
-    for (let i = 0; i < Math.min(5, pool.length); i++) {
-      console.log(`  [w${i}] nh=${pool[i].nh.toFixed(3)} k=${k.toFixed(2)} pow=${Math.pow(pool[i].nh, k).toFixed(4)} w=${weights[i].toFixed(4)}`);
-    }
-
-    const total = weights.reduce((s, w) => s + w, 0);
-    const items = pool.map((n, i) => {
-      const m = midiOf(n.freq);
-      return { name: noteName(m), midi: m, freq: n.freq,
-               pct: weights[i] / total * 100 };
+    // Sum probabilities by pitch class (scale degree regardless of octave)
+    const pcMap = {};
+    pool.forEach((n, i) => {
+      const pc = NM[((midiOf(n.freq) % 12) + 12) % 12];
+      pcMap[pc] = (pcMap[pc] || 0) + weights[i] / total * 100;
     });
+    const top5 = Object.entries(pcMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([pc, pct]) => pc + ' ' + pct.toFixed(1) + '%');
 
     // Effective key: shift semitones applied to tonic's pitch class
-    const tonicMidi  = midiOf(TONICMAP[v.tonic] || 440);
-    const keyName    = NM[((tonicMidi + Math.round(v.tonicShift)) % 12 + 12) % 12];
+    const tonicMidi = midiOf(TONICMAP[v.tonic] || 440);
+    const keyName   = NM[((tonicMidi + Math.round(v.tonicShift)) % 12 + 12) % 12];
 
-    const byFreq = items.slice().sort((a, b) => a.freq - b.freq);
-    const top5   = items.slice().sort((a, b) => b.pct - a.pct).slice(0, 5);
+    const byFreq = pool.slice().sort((a, b) => a.freq - b.freq);
     const lo = byFreq[0], hi = byFreq[byFreq.length - 1];
+    const loName = noteName(midiOf(lo.freq)), hiName = noteName(midiOf(hi.freq));
 
-    const nhSample = pool.slice(0, 8).map(n => n.nh.toFixed(3)).join(', ');
     console.group('▶ BARLOWGEN startup — ' + v.label + ' (ch' + v.ch + ')');
     console.log('  key:      ' + keyName + '  (tonic shift: ' + v.tonicShift.toFixed(1) + ' st)');
     console.log('  scale:    ' + v.scale);
     console.log('  tonality: ' + v.tonality.toFixed(2) + '  →  k = ' + k.toFixed(2));
-    console.log('  nh[0..7]: ' + nhSample);
-    console.log('  pool:     ' + pool.length + ' notes  ·  ' + lo.name + '–' + hi.name);
-    console.log('  top 5:    ' + top5.map(n => n.name + ' ' + n.pct.toFixed(1) + '%').join('  ·  '));
-    console.log('  lowest:   ' + lo.name + '  MIDI ' + lo.midi + '  ' + lo.freq.toFixed(1) + ' Hz');
-    console.log('  highest:  ' + hi.name + '  MIDI ' + hi.midi + '  ' + hi.freq.toFixed(1) + ' Hz');
+    console.log('  pool:     ' + pool.length + ' notes  ·  ' + loName + '–' + hiName);
+    console.log('  top 5:    ' + top5.join('  ·  '));
+    console.log('  lowest:   ' + loName + '  MIDI ' + midiOf(lo.freq) + '  ' + lo.freq.toFixed(1) + ' Hz');
+    console.log('  highest:  ' + hiName + '  MIDI ' + midiOf(hi.freq) + '  ' + hi.freq.toFixed(1) + ' Hz');
     console.groupEnd();
   }
 }
